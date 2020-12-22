@@ -77,24 +77,28 @@ class BabyscrapeDownloaderMiddleware(object):
     def process_request(self, request, spider):
         if 'robots.txt' not in request.url:
             if spider.name =='hotel' and not spider.readmore_clicked:
-                options = webdriver.ChromeOptions()
-                options.add_argument('--headless')
-                driver = webdriver.Chrome('chromedriver.exe', chrome_options=options)
-                driver.get(request.url)
-                readmore_css = 'span._3maEfNCR:nth-of-type(1)'
-                readmore_present = EC.presence_of_element_located((By.CSS_SELECTOR, readmore_css))
-                element = WebDriverWait(driver, 5).until(readmore_present)
-                element.click()
-                body = driver.page_source
-                drive_url = driver.current_url
-                driver.close()
-                driver.quit()
-                spider.readmore_clicked = True
-                return HtmlResponse(url=drive_url, body=body, encoding='utf-8', request=request)
+                return self.readmore_click_response(request, spider)
             else:
                 pass
         else:
             return None
+
+    def readmore_click_response(self, request, spider):
+
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        driver = webdriver.Chrome('chromedriver.exe', chrome_options=options)
+        driver.get(request.url)
+        readmore_css = 'span._3maEfNCR:nth-of-type(1)'
+        readmore_present = EC.presence_of_element_located((By.CSS_SELECTOR, readmore_css))
+        element = WebDriverWait(driver, 5).until(readmore_present)
+        element.click()
+        body = driver.page_source
+        drive_url = driver.current_url
+        driver.close()
+        driver.quit()
+        spider.readmore_clicked = True
+        return HtmlResponse(url=drive_url, body=body, encoding='utf-8', request=request)
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.

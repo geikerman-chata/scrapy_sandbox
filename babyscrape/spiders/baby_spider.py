@@ -42,6 +42,19 @@ class BabySpider(scrapy.Spider):
             metadata['review'] = self.scrape_review(review_response)
             yield self.value_check(metadata)
 
+        self.check_and_scrape_next_page(response)
+
+    def check_and_scrape_next_page(self, response):
+        root_url = 'https://www.tripadvisor.ca/'
+        next_button_disabled = response.css('span.ui_button.nav.next.primary.disabled').extract() != []
+        if next_button_disabled:
+            pass
+        else:
+            next_href = response.css('a.ui_button.nav.next.primary::attr(href)').extract_first()
+            next_page = root_url + next_href
+            self.readmore_clicked = False
+            print(next_page)
+
     def scrape_review(self, review_response):
         bubble_rating = review_response.css('span.ui_bubble_rating::attr(class)').extract_first()
         review = {

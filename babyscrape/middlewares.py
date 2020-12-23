@@ -89,9 +89,16 @@ class BabyscrapeDownloaderMiddleware(object):
         driver = webdriver.Chrome('chromedriver.exe', chrome_options=options)
         driver.get(request.url)
         readmore_css = 'span._3maEfNCR:nth-of-type(1)'
-        readmore_present = EC.presence_of_element_located((By.CSS_SELECTOR, readmore_css))
-        element = WebDriverWait(driver, 5).until(readmore_present)
-        element.click()
+        attempts = 0
+        while attempts < 3:
+            try:
+                readmore_present = EC.presence_of_element_located((By.CSS_SELECTOR, readmore_css))
+                element = WebDriverWait(driver, 5).until(readmore_present)
+                element.click()
+                break
+            except:
+                attempts += 1
+
         body = driver.page_source
         drive_url = driver.current_url
         driver.close()

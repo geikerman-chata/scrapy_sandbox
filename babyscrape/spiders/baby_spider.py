@@ -8,7 +8,8 @@ class BabySpider(scrapy.Spider):
         'https://www.tripadvisor.ca/Hotel_Review-g34439-d1449858-Reviews-The_Local_House-Miami_Beach_Florida.html'
     ]
     readmore_clicked = False
-
+    scrape_list = []
+    page = 1
     def parse(self, response):
         about_rating = response.css('div._1krg1t5y *::attr(class)').extract()
         grades = response.css('span.oPMurIUj::text').extract()
@@ -40,20 +41,25 @@ class BabySpider(scrapy.Spider):
         reviews_on_page = response.css('div._2wrUUKlw')
         for review_response in reviews_on_page:
             metadata['review'] = self.scrape_review(review_response)
-            yield self.value_check(metadata)
-
-        self.check_and_scrape_next_page(response)
+            self.scrape_list.append(self.value_check(metadata))
+        return self.check_and_scrape_next_page(response)
 
     def check_and_scrape_next_page(self, response):
         root_url = 'https://www.tripadvisor.ca/'
         next_button_disabled = response.css('span.ui_button.nav.next.primary.disabled').extract() != []
         if next_button_disabled:
-            pass
+            for review in self.scrape_list:
+                yield review
         else:
             next_href = response.css('a.ui_button.nav.next.primary::attr(href)').extract_first()
             next_page = root_url + next_href
             self.readmore_clicked = False
-            print(next_page)
+            self.page += 1
+            print("Opening Page: {}".format(self.page))
+            yield Request(next_page, callback=self.parse)
+
+    def yield_out(self, output):
+        yield output
 
     def scrape_review(self, review_response):
         bubble_rating = review_response.css('span.ui_bubble_rating::attr(class)').extract_first()

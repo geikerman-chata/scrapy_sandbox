@@ -1,20 +1,24 @@
 import scrapy
 import re
 from scrapy import Request
+import dateparser
+import datetime
+
 class BabySpider(scrapy.Spider):
 
     name = 'hotel'
     start_urls =[
-        'https://www.tripadvisor.ca/Hotel_Review-g34439-d1449858-Reviews-The_Local_House-Miami_Beach_Florida.html'
+        'https://www.tripadvisor.ca/Hotel_Review-g33327-d85018-Reviews-The_Lodge_at_Breckenridge-Breckenridge_Colorado.html'
     ]
     readmore_clicked = False
     scrape_list = []
     page = 1
+    metadata = {}
     def parse(self, response):
         about_rating = response.css('div._1krg1t5y *::attr(class)').extract()
         grades = response.css('span.oPMurIUj::text').extract()
 
-        metadata = {
+        self.metadata = {
             'metadata': {
                 'url': response.url,
                 'id_hotel': self.get_hotel_id(response.url),
@@ -29,7 +33,7 @@ class BabySpider(scrapy.Spider):
                 'service_rating': self.bubble_breaker(about_rating[7]),
                 'value_rating': self.bubble_breaker(about_rating[10]),
                 'good_to_know': response.css('div._2dtF3ueh::text').extract(),
-                'class_rating': response.css('svg._2aZlo29m::attr(title)').extract_first(),
+                'class_rating': response.css('svg._2aZlo29m::attr(title)').extract_first().replace(" of 5 bubbles", ''),
                 'popular_mention_tags': response.css('div._3oYukhTK *::text').extract()[1:],
                 'description': response.css('div._2f_ruteS._1bona3Pu._2-hMril5 * ::text').extract_first(),
                 'location_grade': grades[0],
@@ -40,8 +44,10 @@ class BabySpider(scrapy.Spider):
 
         reviews_on_page = response.css('div._2wrUUKlw')
         for review_response in reviews_on_page:
-            metadata['review'] = self.scrape_review(review_response)
-            self.scrape_list.append(self.value_check(metadata))
+            datapack ={}
+            datapack['review'] = self.scrape_review(review_response)
+            self.scrape_list.append(datapack)
+
         return self.check_and_scrape_next_page(response)
 
     def check_and_scrape_next_page(self, response):
@@ -49,7 +55,10 @@ class BabySpider(scrapy.Spider):
         next_button_disabled = response.css('span.ui_button.nav.next.primary.disabled').extract() != []
         if next_button_disabled:
             for review in self.scrape_list:
-                yield review
+                unique_key = str(review['review']['review_date']) + '-' + str(review['review']['id_user'])
+                self.metadata[unique_key] = review['review']
+            yield self.metadata
+
         else:
             next_href = response.css('a.ui_button.nav.next.primary::attr(href)').extract_first()
             next_page = root_url + next_href
@@ -58,26 +67,28 @@ class BabySpider(scrapy.Spider):
             print("Opening Page: {}".format(self.page))
             yield Request(next_page, callback=self.parse)
 
-    def yield_out(self, output):
-        yield output
-
     def scrape_review(self, review_response):
+        def handle_empty(input):
+            if review_response == '':
+                return None
+
         bubble_rating = review_response.css('span.ui_bubble_rating::attr(class)').extract_first()
+
         review = {
             'id_user': review_response.css('a::attr(href)').extract_first().replace('/Profile/', ''),
             'name_user': review_response.css('div._2fxQ4TOx *::text').extract()[0],
-            'review_date': review_response.css('div._2fxQ4TOx *::text').extract()[1],
+            'review_date': self.process_date(review_response.css('div._2fxQ4TOx *::text').extract()[1]),
             'review_rating': self.bubble_breaker(bubble_rating),
             'trip_type': review_response.css('span._2bVY3aT5::text').extract_first(),
             'helpful_votes': review_response.css('span._3kbymg8R._3kbymg8R::text').extract_first(),
             'reviewer_location': review_response.css('span._1TuWwpYf *::text').extract_first(),
             'review_title': review_response.css('div.glasR4aX *::text').extract_first(),
             'review_text': review_response.css('q.IRsGHoPm *::text').extract_first(),
-            'review_response': '\n'.join(review_response.css('span.sT5TMxg3 *::text').extract()),
+            'review_response': handle_empty('\n'.join(review_response.css('span.sT5TMxg3 *::text').extract())),
             'review_responder': review_response.css('div._204cKjWJ::text').extract_first()
         }
 
-        return self.value_check(review)
+        return review
 
     def bubble_breaker(self, ui_bubble_rating_string):
         return ui_bubble_rating_string[-2] + '.' + ui_bubble_rating_string[-1]
@@ -89,11 +100,10 @@ class BabySpider(scrapy.Spider):
         else:
             return None
 
-    def value_check(self, in_dict):
-        for key in in_dict:
-            if in_dict[key] == '':
-                in_dict[key] = None
-        return in_dict
+    def process_date(self, scraped_review_date):
+        refined = scraped_review_date.replace(' wrote a review ', '')
+        new_date = dateparser.parse(refined).strftime("%m-%Y")
+        return new_date
 
 css_dict = {
         'metadata': {

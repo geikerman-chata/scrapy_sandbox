@@ -76,7 +76,7 @@ class BabyscrapeDownloaderMiddleware(object):
 
     def process_request(self, request, spider):
         if 'robots.txt' not in request.url:
-            if spider.name =='hotel' and not spider.readmore_clicked:
+            if spider.name == 'hotel' and not spider.readmore_clicked:
                 return self.readmore_click_response(request, spider)
             else:
                 pass

@@ -8,12 +8,13 @@ class BabySpider(scrapy.Spider):
 
     name = 'hotel'
     start_urls =[
-        'https://www.tripadvisor.ca/Hotel_Review-g33327-d85018-Reviews-The_Lodge_at_Breckenridge-Breckenridge_Colorado.html'
+        'https://www.tripadvisor.ca/Hotel_Review-g154913-d181945-Reviews-Holiday_Inn_Calgary_Airport-Calgary_Alberta.html'
     ]
     readmore_clicked = False
     scrape_list = []
     page = 1
     metadata = {}
+
     def parse(self, response):
         about_rating = response.css('div._1krg1t5y *::attr(class)').extract()
         grades = response.css('span.oPMurIUj::text').extract()
@@ -53,7 +54,7 @@ class BabySpider(scrapy.Spider):
     def check_and_scrape_next_page(self, response):
         root_url = 'https://www.tripadvisor.ca/'
         next_button_disabled = response.css('span.ui_button.nav.next.primary.disabled').extract() != []
-        if next_button_disabled:
+        if next_button_disabled or self.page ==5:
             for review in self.scrape_list:
                 unique_key = str(review['review']['review_date']) + '-' + str(review['review']['id_user'])
                 self.metadata[unique_key] = review['review']
@@ -121,8 +122,6 @@ css_dict = {
             'description': 'div.cPQsENeY::text'
                     },
         'review': {
-            'read_more_xpath': '/html/body/div[2]/div[2]/div[2]/div[7]/div/div[1]/div[1]/div/div/div[3]/div[3]/div['
-                               '2]/div[3]/div[1]/div[2]/div/span[1]',
             'bubble_rating': 'span.ui_bubble_rating::attr(class)',
             'id_user': 'a::attr(href)',
             'name_user': 'div._2fxQ4TOx *::text',

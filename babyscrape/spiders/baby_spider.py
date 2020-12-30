@@ -4,12 +4,10 @@ from scrapy import Request
 import dateparser
 import datetime
 
-class BabySpider(scrapy.Spider):
 
+class BabySpider(scrapy.Spider):
     name = 'hotel'
-    start_urls =[
-        'https://www.tripadvisor.ca/Hotel_Review-g154913-d181945-Reviews-Holiday_Inn_Calgary_Airport-Calgary_Alberta.html'
-    ]
+    rotate_user_agent = True
     readmore_clicked = False
     scrape_list = []
     page = 1
@@ -18,11 +16,11 @@ class BabySpider(scrapy.Spider):
     def parse(self, response):
         about_rating = response.css('div._1krg1t5y *::attr(class)').extract()
         grades = response.css('span.oPMurIUj::text').extract()
-
+        id_hotel = self.get_hotel_id(response.url)
         self.metadata = {
-            'metadata': {
+            str(id_hotel): {
                 'url': response.url,
-                'id_hotel': self.get_hotel_id(response.url),
+                'id_hotel': id_hotel,
                 'name_hotel': response.css('h1._1mTlpMC3::text').extract_first(),
                 'address_hotel': response.css('span._3ErVArsu::text').extract_first(),
                 'ranking_hotel': response.css('span._28eYYeHH::text').extract_first(),
@@ -45,7 +43,7 @@ class BabySpider(scrapy.Spider):
 
         reviews_on_page = response.css('div._2wrUUKlw')
         for review_response in reviews_on_page:
-            datapack ={}
+            datapack = {}
             datapack['review'] = self.scrape_review(review_response)
             self.scrape_list.append(datapack)
 
@@ -54,9 +52,11 @@ class BabySpider(scrapy.Spider):
     def check_and_scrape_next_page(self, response):
         root_url = 'https://www.tripadvisor.ca/'
         next_button_disabled = response.css('span.ui_button.nav.next.primary.disabled').extract() != []
-        if next_button_disabled or self.page ==5:
+        if next_button_disabled:
             for review in self.scrape_list:
-                unique_key = str(review['review']['review_date']) + '-' + str(review['review']['id_user'])
+                response_signal = 'Y' if review['review']['review_response'] else 'N'
+                unique_key = response_signal + '-' + str(review['review']['review_date']) + '-' \
+                    + str(review['review']['id_user'])
                 self.metadata[unique_key] = review['review']
             yield self.metadata
 
@@ -70,11 +70,12 @@ class BabySpider(scrapy.Spider):
 
     def scrape_review(self, review_response):
         def handle_empty(input):
-            if review_response == '':
+            if input == '':
                 return None
+            else:
+                return input
 
         bubble_rating = review_response.css('span.ui_bubble_rating::attr(class)').extract_first()
-
         review = {
             'id_user': review_response.css('a::attr(href)').extract_first().replace('/Profile/', ''),
             'name_user': review_response.css('div._2fxQ4TOx *::text').extract()[0],
@@ -84,7 +85,7 @@ class BabySpider(scrapy.Spider):
             'helpful_votes': review_response.css('span._3kbymg8R._3kbymg8R::text').extract_first(),
             'reviewer_location': review_response.css('span._1TuWwpYf *::text').extract_first(),
             'review_title': review_response.css('div.glasR4aX *::text').extract_first(),
-            'review_text': review_response.css('q.IRsGHoPm *::text').extract_first(),
+            'review_text': '\n'.join(review_response.css('q.IRsGHoPm *::text').extract()),
             'review_response': handle_empty('\n'.join(review_response.css('span.sT5TMxg3 *::text').extract())),
             'review_responder': review_response.css('div._204cKjWJ::text').extract_first()
         }
@@ -106,24 +107,26 @@ class BabySpider(scrapy.Spider):
         new_date = dateparser.parse(refined).strftime("%m-%Y")
         return new_date
 
+
 css_dict = {
-        'metadata': {
-            'about_div': 'div._3koVEFzz#ABOUT_TAB *',
-            'name_hotel': 'h1._1mTlpMC3::text',
-            'address_hotel': 'span._3ErVArsu::text',
-            'ranking_hotel': 'span._28eYYeHH::text',
-            'number_of_reviews': 'span._3jEYFo-z::text',
-            'amenities': 'div._2rdvbNSg::text',
-            'total_rating': 'span._3cjYfwwQ::text',
-            'about_rating': 'div._1krg1t5y *::attr(class)',
-            'good_to_know': 'div._2dtF3ueh::text',
-            'class_rating': 'div._2dtF3ueh::text',
-            'popular_mention_tags': 'div._3oYukhTK *::text',
-            'description': 'div.cPQsENeY::text'
-                    },
-        'review': {
-            'bubble_rating': 'span.ui_bubble_rating::attr(class)',
-            'id_user': 'a::attr(href)',
-            'name_user': 'div._2fxQ4TOx *::text',
-                }
-        }
+    'metadata': {
+        'about_div': 'div._3koVEFzz#ABOUT_TAB *',
+        'name_hotel': 'h1._1mTlpMC3::text',
+        'address_hotel': 'span._3ErVArsu::text',
+        'ranking_hotel': 'span._28eYYeHH::text',
+        'number_of_reviews': 'span._3jEYFo-z::text',
+        'amenities': 'div._2rdvbNSg::text',
+        'total_rating': 'span._3cjYfwwQ::text',
+        'about_rating': 'div._1krg1t5y *::attr(class)',
+        'good_to_know': 'div._2dtF3ueh::text',
+        'class_rating': 'div._2dtF3ueh::text',
+        'popular_mention_tags': 'div._3oYukhTK *::text',
+        'description': 'div.cPQsENeY::text'
+    },
+    'review': {
+        'bubble_rating': 'span.ui_bubble_rating::attr(class)',
+        'id_user': 'a::attr(href)',
+        'name_user': 'div._2fxQ4TOx *::text',
+    }
+}
+

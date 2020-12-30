@@ -6,8 +6,10 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
+from random import choice
 from scrapy.http import HtmlResponse
 from selenium import webdriver
+from scrapy.exceptions import NotConfigured
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -25,6 +27,7 @@ class BabyscrapeSpiderMiddleware(object):
         s = cls()
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
         return s
+
 
     def process_spider_input(self, response, spider):
         # Called for each response that goes through the spider
@@ -89,7 +92,7 @@ class BabyscrapeDownloaderMiddleware(object):
         driver = webdriver.Chrome('chromedriver.exe', chrome_options=options)
         driver.get(request.url)
         readmore_css = 'span._3maEfNCR:nth-of-type(1)'
-        attempts = 0
+        attempts = 1
         while attempts < 3:
             try:
                 readmore_present = EC.presence_of_element_located((By.CSS_SELECTOR, readmore_css))
@@ -98,7 +101,7 @@ class BabyscrapeDownloaderMiddleware(object):
                 break
             except:
                 attempts += 1
-
+                print('Did not locate the "Read more" element, retrying: {}/3 '.format(attempts))
         body = driver.page_source
         drive_url = driver.current_url
         driver.close()
@@ -127,4 +130,31 @@ class BabyscrapeDownloaderMiddleware(object):
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+class RotateUserAgentMiddleware(object):
+    """Rotate user-agent for each request."""
+    def __init__(self, user_agents):
+        self.enabled = False
+        self.user_agents = user_agents
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        user_agents = crawler.settings.get('USER_AGENT_CHOICES', [])
+
+        if not user_agents:
+            raise NotConfigured("USER_AGENT_CHOICES not set or empty")
+
+        o = cls(user_agents)
+        crawler.signals.connect(o.spider_opened, signal=signals.spider_opened)
+        return o
+
+    def spider_opened(self, spider):
+        self.enabled = getattr(spider, 'rotate_user_agent', self.enabled)
+
+    def process_request(self, request, spider):
+        if not self.enabled or not self.user_agents:
+            return
+        request.headers['user-agent'] = choice(self.user_agents)
+        print('User agent switched to : ' + request.headers['user-agent'].decode("utf-8"))
 

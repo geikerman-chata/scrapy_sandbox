@@ -52,7 +52,7 @@ class BabySpider(scrapy.Spider):
     def check_and_scrape_next_page(self, response):
         root_url = 'https://www.tripadvisor.ca/'
         next_button_disabled = response.css('span.ui_button.nav.next.primary.disabled').extract() != []
-        if next_button_disabled:
+        if next_button_disabled or self.page == 5:
             for review in self.scrape_list:
                 response_signal = 'Y' if review['review']['review_response'] else 'N'
                 unique_key = response_signal + '-' + str(review['review']['review_date']) + '-' \
@@ -107,6 +107,12 @@ class BabySpider(scrapy.Spider):
         new_date = dateparser.parse(refined).strftime("%m-%Y")
         return new_date
 
+    def response_is_ban(self, request, response):
+        return b'banned' in response.body
+
+    def exception_is_ban(self, request, exception):
+        return None
+
 
 css_dict = {
     'metadata': {
@@ -129,4 +135,3 @@ css_dict = {
         'name_user': 'div._2fxQ4TOx *::text',
     }
 }
-

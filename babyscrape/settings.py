@@ -20,7 +20,6 @@ SPIDER_MODULES = ['babyscrape.spiders']
 NEWSPIDER_MODULE = 'babyscrape.spiders'
 
 
-
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'babyscrape (+http://www.yourdomain.com)'
 
@@ -61,7 +60,15 @@ COOKIES_ENABLED = False
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 
+#with open('proxies.txt', 'r'):
+
+
+ROTATING_PROXY_LIST_PATH ='proxies.txt'
+
+
 DOWNLOADER_MIDDLEWARES = {
+    'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
+    'rotating_proxies.middlewares.BanDetectionMiddleware': 620,
     'babyscrape.middlewares.BabyscrapeDownloaderMiddleware': 543,
     'babyscrape.middlewares.RotateUserAgentMiddleware': 110
 }
@@ -77,6 +84,7 @@ USER_AGENT_CHOICES = [
     'Mozilla/5.0 (Windows NT 6.2; WOW64; rv:28.0) AppleWebKit/534.57.2 (KHTML, like Gecko) Version/5.1.7 Safari/534.57.2',
 ]
 
+FEED_EXPORT_INDENT = 4
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -91,7 +99,7 @@ USER_AGENT_CHOICES = [
 #   'babyscrape.pipelines.BabyscrapePipeline': 300,
 #}
 
-FEED_EXPORT_INDENT = 4
+
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

@@ -49,7 +49,7 @@ def main():
         hotel_id = get_hotel_id(base_url)
         if hotel_id:
             settings = get_project_settings()
-            settings['FEED_URI'] = hotel_id + '.json'
+            settings['FEED_URI'] = 'output/' + hotel_id + '.json'
             settings['FEED_FORMAT'] = 'json'
             run_spider(BabySpider, settings, base_url)
         else:

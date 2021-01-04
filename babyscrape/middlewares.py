@@ -14,7 +14,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+import importlib
 
 class BabyscrapeSpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
@@ -27,7 +27,6 @@ class BabyscrapeSpiderMiddleware(object):
         s = cls()
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
         return s
-
 
     def process_spider_input(self, response, spider):
         # Called for each response that goes through the spider
@@ -111,7 +110,6 @@ class BabyscrapeDownloaderMiddleware(object):
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
-
         # Must either;
         # - return a Response object
         # - return a Request object

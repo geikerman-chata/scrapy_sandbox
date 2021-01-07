@@ -1,4 +1,6 @@
 import scrapy
+
+from datetime import datetime
 from twisted.internet import reactor
 import scrapy.crawler as crawler
 from scrapy.crawler import CrawlerProcess
@@ -7,10 +9,12 @@ from multiprocessing import Process, Queue
 import sys
 from scrapy.utils.project import get_project_settings
 import re
+import os, errno
 
 
-url_queue = ['https://www.tripadvisor.com/Hotel_Review-g34439-d7940209-Reviews-The_Gates_Hotel_South_Beach_a_DoubleTree_by_Hilton.html',
-             'https://www.tripadvisor.com/Hotel_Review-g32706-d249597-Reviews-Days_Inn_by_Wyndham_Merced_Yosemite_Area.html']
+url_queue = [
+    "https://www.tripadvisor.ca/Hotel_Review-g34439-d7940209-Reviews-or215-The_Gates_Hotel_South_Beach_a_DoubleTree_by_Hilton-Miami_Beach_Florida.html"
+             ]
 
 
 def get_hotel_id(url):
@@ -28,6 +32,7 @@ def deploy_crawler(queue, spider, settings, url):
         deferred.addBoth(lambda _: reactor.stop())
         reactor.run()
         queue.put(None)
+
     except Exception as e:
         queue.put(e)
 
@@ -44,16 +49,24 @@ def run_spider(spider, settings, url):
 
 
 def main():
-
     for base_url in url_queue:
         hotel_id = get_hotel_id(base_url)
         if hotel_id:
+            silent_remove('output/' + hotel_id + '.json')
             settings = get_project_settings()
             settings['FEED_URI'] = 'output/' + hotel_id + '.json'
             settings['FEED_FORMAT'] = 'json'
             run_spider(BabySpider, settings, base_url)
         else:
             print('Hotel ID not found in URL!!')
+
+
+def silent_remove(filename):
+    try:
+        os.remove(filename)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
 
 
 if __name__ == "__main__":

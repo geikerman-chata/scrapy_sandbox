@@ -10,6 +10,7 @@ from random import choice
 from scrapy.http import HtmlResponse
 from selenium import webdriver
 from scrapy.exceptions import NotConfigured
+from scrapy.exceptions import CloseSpider
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
@@ -65,9 +66,6 @@ class BabyscrapeSpiderMiddleware(object):
 
 
 class BabyscrapeDownloaderMiddleware(object):
-    # Not all methods need to be defined. If a method is not defined,
-    # scrapy acts as if the downloader middleware does not modify the
-    # passed objects.
     visited_pages =[]
     @classmethod
     def from_crawler(cls, crawler):
@@ -91,8 +89,8 @@ class BabyscrapeDownloaderMiddleware(object):
         driver = webdriver.Chrome('chromedriver.exe', chrome_options=options)
         driver.get(request.url)
         readmore_css = 'span._3maEfNCR:nth-of-type(1)'
-        attempts = 1
-        while attempts < 3:
+        attempts = 0
+        while attempts < 2:
             try:
                 readmore_present = EC.presence_of_element_located((By.CSS_SELECTOR, readmore_css))
                 element = WebDriverWait(driver, 5).until(readmore_present)
@@ -100,7 +98,10 @@ class BabyscrapeDownloaderMiddleware(object):
                 break
             except:
                 attempts += 1
-                print('Did not locate the "Read more" element, retrying: {}/3 '.format(attempts))
+                print('Did not locate the "Read more" element, retrying: {}/2 '.format(attempts))
+        if attempts == 2:
+            raise CloseSpider(reason='Readmore Element not Found')
+
         body = driver.page_source
         drive_url = driver.current_url
         driver.close()

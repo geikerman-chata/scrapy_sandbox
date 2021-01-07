@@ -12,7 +12,7 @@ def fetch_proxies():
             proxy_truncated = proxy.replace('http://','')
             if proxy_truncated not in proxy_list:
                 proxy_list.append(proxy_truncated)
-                toc= time.time()
+                toc = time.time()
                 print('Proxy Added: {} on attempt {}, time elapsed: {}'.format(proxy_truncated, attempts, round(toc-tic, 3)))
         attempts += 1
 
@@ -24,3 +24,4 @@ if __name__ =='__main__':
     with open('proxies.txt', 'w') as writer:
         for proxy in proxy_list:
             writer.write("%s\n" % proxy)
+

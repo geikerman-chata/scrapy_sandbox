@@ -17,7 +17,7 @@ def make_processes(spider_range_idx, start_index):
 
 
 def run_process(process):
-    os.system('python {}'.format(process))
+    os.system('python3 {}'.format(process))
 
 
 class InvalidArgument(Exception):

@@ -10,11 +10,10 @@ import sys
 from scrapy.utils.project import get_project_settings
 import re
 import os, errno
-
-
-url_queue = [
-    "https://www.tripadvisor.ca/Hotel_Review-g34439-d7940209-Reviews-or215-The_Gates_Hotel_South_Beach_a_DoubleTree_by_Hilton-Miami_Beach_Florida.html"
-             ]
+from spider_feeder import SpiderFeeder
+from fetch_proxies import FetchProxies
+import argparse
+from pathlib import Path
 
 
 def get_hotel_id(url):
@@ -48,17 +47,36 @@ def run_spider(spider, settings, url):
         raise result
 
 
-def main():
-    for base_url in url_queue:
-        hotel_id = get_hotel_id(base_url)
+def main(filenumber, start_spider_index):
+    iteration = 0
+    spiderfeed = SpiderFeeder(filenumber=filenumber, start_index=start_spider_index)
+    proxies = FetchProxies(filenumber)
+    try:
+        proxies.fetch()
+    except FetchProxyFail:
+        raise FetchProxyFail('Proxy List could not be populated on init')
+
+    while spiderfeed.continue_feed:
+        if iteration % 50 == 0 and iteration != 0:
+            try:
+                proxies.fetch()
+            except FetchProxyFail:
+                pass
+
+        hotel_id = get_hotel_id(spiderfeed.current_url)
+
         if hotel_id:
-            silent_remove('output/' + hotel_id + '.json')
+            silent_remove(Path('output/' + spiderfeed.zipfile_id + '-' + hotel_id + '.json'))
             settings = get_project_settings()
-            settings['FEED_URI'] = 'output/' + hotel_id + '.json'
+            settings['FEED_URI'] = Path('output/' + spiderfeed.zipfile_id + '-' + hotel_id + '.json')
             settings['FEED_FORMAT'] = 'json'
-            run_spider(BabySpider, settings, base_url)
+            settings['ROTATING_PROXY_LIST_PATH'] = Path('proxies/proxies{}.txt'.format(filenumber))
+            run_spider(BabySpider, settings, spiderfeed.current_url)
+
         else:
             print('Hotel ID not found in URL!!')
+        spiderfeed.next_url()
+        iteration += 1
 
 
 def silent_remove(filename):
@@ -69,9 +87,26 @@ def silent_remove(filename):
             raise
 
 
+class InvalidArgument(Exception):
+    pass
+class FetchProxyFail(Exception):
+    pass
+
 if __name__ == "__main__":
     sys.path.insert(0, './spiders')
     from baby_spider import BabySpider
-    main()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--filenumber", "-f", help="File number index of the file in the input directory to run "
+                                                   "spidermother on")
+    parser.add_argument("--spider_start_idx", "-s", help="Index in the xml the start feeder will begin ")
+    args = parser.parse_args()
+
+    if args.filenumber and args.spider_start_idx:
+        main(int(args.filenumber), int(args.spider_start_idx))
+    elif not args.spider_start_idx:
+        main(int(args.filenumber), 0)
+    else:
+        raise InvalidArgument('Input a filenumber in the form: -f ## to run spidermother.py')
 
 

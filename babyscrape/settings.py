@@ -63,7 +63,7 @@ COOKIES_ENABLED = False
 #with open('proxies.txt', 'r'):
 
 
-ROTATING_PROXY_LIST_PATH ='proxies.txt'
+#ROTATING_PROXY_LIST_PATH ='proxies.txt'
 
 DOWNLOADER_MIDDLEWARES = {
     'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,

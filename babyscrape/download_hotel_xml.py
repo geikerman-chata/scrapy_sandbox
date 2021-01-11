@@ -18,7 +18,6 @@ def fetch_sitemap_list(root_url):
         sauce = site.read()
         soup = BeautifulSoup(sauce, "html.parser")
         split_soup = soup.get_text().split('\n')
-
         sitemap_list = []
         for line in split_soup:
             if "Sitemap" in line:
@@ -38,8 +37,8 @@ def get_xml_list(site_index_url):
 def filter_xmls(list_xmls_from_soup, filter_string):
     filtered_xmls =[]
     for item in list_xmls_from_soup:
-            if filter_string in item.text:
-                filtered_xmls.append(item.text)
+        if filter_string in item.text:
+            filtered_xmls.append(item.text)
     return filtered_xmls
 
 

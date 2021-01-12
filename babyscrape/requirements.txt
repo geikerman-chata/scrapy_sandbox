@@ -33,7 +33,6 @@ proxy-checker==0.6
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pycparser==2.20
-pycurl @ file:///C:/Users/Geoff%20Eikerman/Desktop/chata/url_spider/pycurl-7.43.0.4-cp37-cp37m-win_amd64.whl
 PyDispatcher==2.0.5
 Pygments==2.7.3
 PyHamcrest==2.0.2

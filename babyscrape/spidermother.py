@@ -49,7 +49,7 @@ def run_spider(spider, settings, url):
 
 def main(filenumber, start_spider_index):
     iteration = 0
-    spiderfeed = SpiderFeeder(filenumber=filenumber, start_index=start_spider_index)
+    spiderfeed = SpiderFeeder(filenumber=filenumber, start_idx=start_spider_index)
     proxies = FetchProxies(filenumber)
     try:
         proxies.fetch()

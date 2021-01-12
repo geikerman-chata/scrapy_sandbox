@@ -6,6 +6,9 @@ from datetime import datetime
 from csv import writer
 import time
 
+class NoDateExtracted(Exception):
+    pass
+
 class BabySpider(scrapy.Spider):
     name = 'hotel'
     rotate_user_agent = True
@@ -16,7 +19,8 @@ class BabySpider(scrapy.Spider):
     status = 'Empty'
     tic = time.time()
     start_urls = [
-        "https://www.tripadvisor.ca/Hotel_Review-g807293-d15763094-Reviews-AlpinLodge_Flachau-Flachau_Austrian_Alps.html"
+        #"https://www.tripadvisor.ca/Hotel_Review-g807293-d15763094-Reviews-AlpinLodge_Flachau-Flachau_Austrian_Alps.html"
+        "https://www.tripadvisor.ca/Hotel_Review-g635886-d3675778-Reviews-El_Torito_de_Rota-Rota_Province_of_Cadiz_Andalucia.html"
         ]
 
     def parse(self, response):
@@ -76,6 +80,7 @@ class BabySpider(scrapy.Spider):
             print("Opening Page: {}".format(self.page))
             yield Request(next_page, callback=self.parse)
 
+
     def scrape_review(self, review_response):
         def handle_empty(input):
             if input == '':
@@ -85,10 +90,11 @@ class BabySpider(scrapy.Spider):
 
         responder = self.handle_responder(review_response.css('div._204cKjWJ::text'))
         bubble_rating = review_response.css('span.ui_bubble_rating::attr(class)').extract_first()
+
         review = {
             'id_user': review_response.css('a::attr(href)').extract_first().replace('/Profile/', ''),
             'name_user': review_response.css('div._2fxQ4TOx *::text').extract()[0],
-            'review_date': self.process_date(review_response.css('div._2fxQ4TOx *::text').extract()[1]),
+            'review_date': self.handle_review_date(review_response),
             'review_rating': self.bubble_breaker(bubble_rating),
             'trip_type': review_response.css('span._2bVY3aT5::text').extract_first(),
             'helpful_votes': review_response.css('span._3kbymg8R._3kbymg8R::text').extract_first(),
@@ -101,6 +107,24 @@ class BabySpider(scrapy.Spider):
         }
 
         return review
+
+    def handle_review_date(self, review_response):
+        scraped_review_date = review_response.css('div._2fxQ4TOx *::text').extract()[1]
+        scraped_date_of_stay = review_response.css('span._34Xs-BQm *::text').extract()[1]
+
+        try:
+            if scraped_review_date:
+                refined = scraped_review_date.replace(' wrote a review ', '')
+                review_date = dateparser.parse(refined).strftime("%m-%Y")
+            elif scraped_date_of_stay:
+                review_date = dateparser.parse(scraped_date_of_stay).strftime("%m-%Y")
+            else:
+                review_date = '00-0000'
+
+        except NoDateExtracted:
+            review_date = '00-0000'
+
+        return review_date
 
     def handle_ratings(self, response):
         bubbles = response.css('div._1krg1t5y *::attr(class)').extract()
@@ -163,8 +187,11 @@ class BabySpider(scrapy.Spider):
 
     def process_date(self, scraped_review_date):
         refined = scraped_review_date.replace(' wrote a review ', '')
-        new_date = dateparser.parse(refined).strftime("%m-%Y")
-        return new_date
+        try:
+            new_date = dateparser.parse(refined).strftime("%m-%Y")
+            return new_date
+        except:
+            return scraped_review_date
 
     def response_is_ban(self, request, response):
         return b'banned' in response.body
@@ -181,3 +208,4 @@ class BabySpider(scrapy.Spider):
         with open('output/output_meta.csv', 'a+', newline='') as write_obj:
             csv_writer = writer(write_obj)
             csv_writer.writerow(row)
+

@@ -10,7 +10,7 @@ class InputError(Exception):
     pass
 
 class SpiderFeeder():
-    def __init__(self, filenumber, start_idx=0,unzip=False,):
+    def __init__(self, filenumber, start_idx=0, unzip=False):
         self.path = os.path.join(os.getcwd(), 'input')
         self.zip_files = [file for file in os.listdir(self.path) if '.gz' in file]
         self.unzip = unzip
@@ -40,16 +40,18 @@ class SpiderFeeder():
             print('Unzipping URL list: {}'.format(self.current_file))
             self.url_list = self.unzip_url()
             self.url_list_len = len(self.url_list)
-            self.current_url = self.url_list[self.marker]
-            self.dump_url_list()
-            del self.url_list
+            if not self.marker >= self.url_list_len:
+                self.current_url = self.url_list[self.marker]
+                self.dump_url_list()
+                del self.url_list
+            else:
+                raise InputError('Start index {} must be less than the length of url list {}'.format(self.marker,
+                                                                                                     self.url_list_len))
         else:
             self.current_url = self.read_url_at_marker()
             self.url_list_len = self.read_num_lines(self.url_txt_file_name)
 
-        if self.marker > self.url_list_len:
-            raise InputError('Start index {} must be less than the length of url list {}'.format(self.marker,
-                                                                                                 self.url_list_len))
+
 
     def does_file_exist(self, file):
         return os.path.isfile(os.path.join(self.path, file))

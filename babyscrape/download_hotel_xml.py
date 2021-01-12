@@ -41,10 +41,15 @@ def filter_xmls(list_xmls_from_soup, filter_string):
             filtered_xmls.append(item.text)
     return filtered_xmls
 
+def does_dir_exist(path):
+    return os.path.isdir(os.path.join(path))
 
 def save_xml_gzs(xml_url):
     filename = xml_url.split("/")[-1]
     cwd = os.getcwd()
+    if not does_dir_exist(os.path.join(cwd, 'input')):
+        os.mkdir(os.path.join(cwd, 'input'))
+
     path = os.path.join(cwd, 'input', filename)
     with open(path, "wb") as file:
         url_request = requests.get(xml_url)

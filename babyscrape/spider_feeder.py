@@ -10,14 +10,14 @@ class InputError(Exception):
     pass
 
 class SpiderFeeder():
-    def __init__(self, filenumber, lowram=True, unzip=False, start_index=0):
+    def __init__(self, filenumber, start_idx=0, lowram=True, unzip=False,):
         self.path = os.path.join(os.getcwd(), 'input')
         self.zip_files = [file for file in os.listdir(self.path) if '.gz' in file]
         self.lowram = lowram
         self.unzip = unzip
         self.url_list = []
         self.current_url = None
-        self.start_index = start_index
+        self.start_index = start_idx
         self.continue_feed = True
 
         if self.zip_files:

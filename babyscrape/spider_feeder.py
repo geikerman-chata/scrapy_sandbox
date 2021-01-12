@@ -10,10 +10,9 @@ class InputError(Exception):
     pass
 
 class SpiderFeeder():
-    def __init__(self, filenumber, start_idx=0, lowram=True, unzip=False,):
+    def __init__(self, filenumber, start_idx=0,unzip=False,):
         self.path = os.path.join(os.getcwd(), 'input')
         self.zip_files = [file for file in os.listdir(self.path) if '.gz' in file]
-        self.lowram = lowram
         self.unzip = unzip
         self.url_list = []
         self.current_url = None
@@ -41,7 +40,7 @@ class SpiderFeeder():
             print('Unzipping URL list: {}'.format(self.current_file))
             self.url_list = self.unzip_url()
             self.url_list_len = len(self.url_list)
-            self.current_url = self.url_at_marker()
+            self.current_url = self.url_list[self.marker]
             self.dump_url_list()
             del self.url_list
         else:
@@ -69,9 +68,6 @@ class SpiderFeeder():
         with open(os.path.join(self.path, self.marker_file_name), 'r') as reader:
             return int(reader.read())
 
-    def url_at_marker(self):
-        return self.url_list[self.marker]
-
     def dump_url_list(self):
         with open(os.path.join(self.path, self.url_txt_file_name), 'w') as writer:
             for row in self.url_list:
@@ -88,14 +84,15 @@ class SpiderFeeder():
 
     def next_url(self):
         if self.marker == self.url_list_len - 1:
+            self.continue_feed = False
             self.current_url = None  #Will crash spidermother if end of xml is reached
         else:
             self.marker += 1
             marker = self.marker
-            if not self.lowram:
-                self.update_marker_file(marker)
-                self.current_url = self.url_at_marker()
-            else:
-                self.update_marker_file(marker)
-                self.current_url = self.read_url_at_marker()
+            #if not self.lowram:
+            #    self.update_marker_file(marker)
+            #    self.current_url = self.url_at_marker()
+            #else:
+            self.update_marker_file(marker)
+            self.current_url = self.read_url_at_marker()
 

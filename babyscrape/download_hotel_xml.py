@@ -53,6 +53,7 @@ def save_xml_gzs(xml_url):
     path = os.path.join(cwd, 'input', filename)
     with open(path, "wb") as file:
         url_request = requests.get(xml_url)
+        print('Downloading: {}'.format(xml_url))
         file.write(url_request.content)
 
 

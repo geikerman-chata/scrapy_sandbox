@@ -135,7 +135,7 @@ if __name__ == "__main__":
     parser.add_argument("--filenumber", "-f", help="File number index of the file in the input directory to run "
                                                    "spidermother on")
     parser.add_argument("--spider_start_idx", "-s", help="Index in the xml the start feeder will begin ")
-    parser.add_argument("--bucket_save", "b", help ="Save to default bucket path on google cloud: {}".format(bucket))
+    parser.add_argument("--bucket_save", "-b", help ="Save to default bucket path on google cloud: {}".format(bucket))
     args = parser.parse_args()
 
     if args.bucket_save:

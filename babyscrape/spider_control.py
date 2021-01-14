@@ -5,11 +5,13 @@ from multiprocessing import get_context
 import argparse
 
 
-def make_processes(spider_range_idx, start_index):
+def make_processes(spider_range_idx, start_index, bucket):
     if start_index == 0:
         start_string = ''
     else:
         start_string = ' -s ' + str(start_index)
+    if bucket:
+        start_string = start_string + ' -b'
     processes = ()
     for process_number in range(spider_range_idx[0], spider_range_idx[1]):
         processes = processes + ('spidermother.py -f {}{}'.format(process_number, start_string),)
@@ -24,9 +26,9 @@ class InvalidArgument(Exception):
     pass
 
 
-def main(range_idx, start_idx=0):
+def main(range_idx, start_idx=0, bucket=True):
     number_of_processes = len(range(range_idx[0], range_idx[1]))
-    processes = make_processes(range_idx, start_idx)
+    processes = make_processes(range_idx, start_idx, bucket)
     pool = Pool(processes=number_of_processes)
     pool.map(run_process, processes)
 
@@ -40,13 +42,13 @@ if __name__ == "__main__":
     parser.add_argument("--start", "-s", help="Start target process file number")
     parser.add_argument("--finish", "-f", help="End target process file number")
     args = parser.parse_args()
-
+    bucket = True
     if args.start and args.finish:
-        range_idx = (int(args.start), int(args.finish))
+        range_idx = (int(args.start), int(args.finish), bucket)
     elif args.start and not args.finish:
-        range_idx = (int(args.start), int(args.start))
+        range_idx = (int(args.start), int(args.start), bucket)
     elif not args.finish and args.finish:
-        range_idx = (int(args.finish), int(args.finish))
+        range_idx = (int(args.finish), int(args.finish), bucket)
     else:
         range_idx = None
 

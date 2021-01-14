@@ -2,6 +2,7 @@ import os
 from bs4 import BeautifulSoup
 import gzip
 import linecache
+import re
 
 class FileError(Exception):
     pass
@@ -51,10 +52,26 @@ class SpiderFeeder():
             self.current_url = self.read_url_at_marker()
             self.url_list_len = self.read_num_lines(self.url_txt_file_name)
 
-
-
     def does_file_exist(self, file):
         return os.path.isfile(os.path.join(self.path, file))
+
+    def find_stop_index(self):
+        folder_contents = os.listdir(self.path)
+        marker_list = [marker for marker in folder_contents if str(self.zipfile_id) + '_marker_' in marker]
+        stop_idx_candidates = []
+        for marker_idx in marker_list:
+            regex = '(?<=_marker_).*?(?=.txt)'
+            stop_idx_candidate = re.search(regex, marker_idx)
+            if stop_idx_candidate:
+                stop_idx_candidates.append(int(stop_idx_candidate.group(0)))
+        return self.find_closest_in_list(stop_idx_candidates, self.marker)
+
+    def find_closest_in_list(self, num_list, target):
+        nearest = min(num_list, key=lambda x: abs(x - target) if x > target else self.url_list_len-1)
+        if nearest == 0:
+            return self.url_list_len - 1
+        else:
+            return nearest - 1
 
     def unzip_url(self):
         with gzip.open(os.path.join(self.path, self.current_file)) as readfile:
@@ -85,16 +102,13 @@ class SpiderFeeder():
         return linecache.getline(os.path.join(self.path, file), line + 1)
 
     def next_url(self):
-        if self.marker == self.url_list_len - 1:
+        stop_index = self.find_stop_index()
+        if self.marker == self.url_list_len - 1 or self.marker >= stop_index:
             self.continue_feed = False
-            self.current_url = None  #Will crash spidermother if end of xml is reached
+            self.current_url = None
         else:
             self.marker += 1
             marker = self.marker
-            #if not self.lowram:
-            #    self.update_marker_file(marker)
-            #    self.current_url = self.url_at_marker()
-            #else:
             self.update_marker_file(marker)
             self.current_url = self.read_url_at_marker()
 

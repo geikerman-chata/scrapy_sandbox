@@ -5,6 +5,7 @@ import dateparser
 from datetime import datetime
 from csv import writer
 import time
+from langdetect import detect
 
 class NoDateExtracted(Exception):
     pass
@@ -18,6 +19,7 @@ class BabySpider(scrapy.Spider):
     metadata = {}
     status = 'Empty'
     tic = time.time()
+    is_response = False
     start_urls = [
         #"https://www.tripadvisor.ca/Hotel_Review-g807293-d15763094-Reviews-AlpinLodge_Flachau-Flachau_Austrian_Alps.html"
         "https://www.tripadvisor.ca/Hotel_Review-g635886-d3675778-Reviews-El_Torito_de_Rota-Rota_Province_of_Cadiz_Andalucia.html"
@@ -60,6 +62,7 @@ class BabySpider(scrapy.Spider):
 
         return self.check_and_scrape_next_page(response)
 
+
     def check_and_scrape_next_page(self, response):
         root_url = 'https://www.tripadvisor.ca/'
         next_button_disabled = response.css('span.ui_button.nav.next.primary.disabled').extract() != []
@@ -80,22 +83,20 @@ class BabySpider(scrapy.Spider):
             print("Opening Page: {}".format(self.page))
             yield Request(next_page, callback=self.parse)
 
-
     def scrape_review(self, review_response):
         def handle_empty(input):
             if input == '':
                 return None
             else:
                 return input
-
         responder = self.handle_responder(review_response.css('div._204cKjWJ::text'))
         bubble_rating = review_response.css('span.ui_bubble_rating::attr(class)').extract_first()
-
         review = {
             'id_user': review_response.css('a::attr(href)').extract_first().replace('/Profile/', ''),
             'name_user': review_response.css('div._2fxQ4TOx *::text').extract()[0],
             'review_date': self.handle_review_date(review_response),
             'review_rating': self.bubble_breaker(bubble_rating),
+            'review_language': self.check_language(review_response),
             'trip_type': review_response.css('span._2bVY3aT5::text').extract_first(),
             'helpful_votes': review_response.css('span._3kbymg8R._3kbymg8R::text').extract_first(),
             'reviewer_location': review_response.css('span._1TuWwpYf *::text').extract_first(),
@@ -105,25 +106,37 @@ class BabySpider(scrapy.Spider):
             'responder': responder[0],
             'responder_title': responder[1]
         }
-
         return review
 
+    def check_language(self, review_response):
+        return detect('\n'.join(review_response.css('q.IRsGHoPm *::text').extract()))
+
+    def try_grab_date(self, review_response):
+        scraped_review_date_try = review_response.css('div._2fxQ4TOx *::text').extract()
+        scraped_date_of_stay_try = review_response.css('span._34Xs-BQm *::text').extract()
+        if len(scraped_review_date_try) == 2:
+            scraped_review_date = scraped_review_date_try[1]
+            scraped_date_of_stay = None
+        elif len(scraped_review_date_try) == 2:
+            scraped_date_of_stay = scraped_date_of_stay_try[1]
+            scraped_review_date = None
+        else:
+            scraped_date_of_stay = None
+            scraped_review_date = None
+        return scraped_review_date, scraped_date_of_stay
+
     def handle_review_date(self, review_response):
-        scraped_review_date = review_response.css('div._2fxQ4TOx *::text').extract()[1]
-        scraped_date_of_stay = review_response.css('span._34Xs-BQm *::text').extract()[1]
-
-        try:
-            if scraped_review_date:
-                refined = scraped_review_date.replace(' wrote a review ', '')
-                review_date = dateparser.parse(refined).strftime("%m-%Y")
-            elif scraped_date_of_stay:
-                review_date = dateparser.parse(scraped_date_of_stay).strftime("%m-%Y")
-            else:
-                review_date = '00-0000'
-
-        except NoDateExtracted:
+        scraped_review_date, scraped_date_of_stay = self.try_grab_date(review_response)
+        if not scraped_review_date and not scraped_date_of_stay:
+            time.sleep(2)
+            scraped_review_date, scraped_date_of_stay = self.try_grab_date(review_response)
+        if scraped_review_date:
+            refined = scraped_review_date.replace(' wrote a review ', '')
+            review_date = dateparser.parse(refined).strftime("%m-%Y")
+        elif scraped_date_of_stay:
+            review_date = dateparser.parse(scraped_date_of_stay).strftime("%m-%Y")
+        else:
             review_date = '00-0000'
-
         return review_date
 
     def handle_ratings(self, response):
@@ -148,6 +161,7 @@ class BabySpider(scrapy.Spider):
             if len(responder_full.split(',')) == 2:
                 responder = responder_full.split(',')[0].replace('Response from ', '')
                 title = responder_full.split(',')[1].split(' at')[0]
+                self.is_response = True
                 return [responder, title]
             else:
                 return [responder_full, None]

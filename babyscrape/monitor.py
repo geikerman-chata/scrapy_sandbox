@@ -15,7 +15,7 @@ def read_input_folder():
     markers = []
     for marker_txt in marker_list:
         start_idx = re.search(regex, marker_txt).group(0)
-        with open(Path(path, marker_txt)) as file:
+        with open(Path(path, marker_txt), 'r') as file:
             markers.append((int(start_idx), int(file.read())))
     return markers
 

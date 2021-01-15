@@ -16,7 +16,6 @@ from pathlib import Path
 from google.cloud import storage
 
 
-
 def get_hotel_id(url):
     found = re.search(r'[g]\d{4,}[-][d]\d{5,}', url)
     if found:
@@ -47,16 +46,6 @@ def run_spider(spider, settings, url):
     if result is not None:
         raise result
 
-
-def store_locally(filenumber, file):
-    silent_remove(file)
-    settings = get_project_settings()
-    settings['FEED_URI'] = Path(file)
-    settings['FEED_FORMAT'] = 'json'
-    settings['ROTATING_PROXY_LIST_PATH'] = Path('proxies/proxies{}.txt'.format(filenumber))
-    return settings
-
-
 def upload_blob(bucket_name, source_file_name, destination_blob_name):
   storage_client = storage.Client()
   bucket = storage_client.get_bucket(bucket_name)
@@ -65,16 +54,6 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
   print('File {} uploaded to {}.'.format(
       source_file_name,
       destination_blob_name))
-
-def store_in_bucket(filenumber, file):
-
-    silent_remove(file)
-    settings = get_project_settings()
-    settings['FEED_URI'] = Path(file)
-    settings['FEED_FORMAT'] = 'json'
-    settings['ROTATING_PROXY_LIST_PATH'] = Path('proxies/proxies{}.txt'.format(filenumber))
-    return settings
-
 
 def main(filenumber, start_spider_index, bucket_save, bucket):
     iteration = 0
@@ -102,8 +81,9 @@ def main(filenumber, start_spider_index, bucket_save, bucket):
             settings['FEED_FORMAT'] = 'json'
             settings['ROTATING_PROXY_LIST_PATH'] = Path('proxies/proxies{}.txt'.format(filenumber))
             if bucket_save:
+                bucket_sub_dir = 'ta-crawler/raw-output/'
                 run_spider(BabySpider, settings, spiderfeed.current_url)
-                upload_blob(bucket, file, filename)
+                upload_blob(bucket, file, Path(bucket_sub_dir + filename))
                 os.remove(file)
             else:
                 run_spider(BabySpider, settings, spiderfeed.current_url)
@@ -130,7 +110,7 @@ if __name__ == "__main__":
     sys.path.insert(0, './spiders')
     from baby_spider import BabySpider
 
-    bucket = Path('nlp_resources/ta-crawler/raw_output')
+    bucket = 'nlp_resources'
     parser = argparse.ArgumentParser()
     parser.add_argument("--filenumber", "-f", help="File number index of the file in the input directory to run "
                                                    "spidermother on")

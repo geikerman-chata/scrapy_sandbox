@@ -11,7 +11,7 @@ def make_processes(spider_range_idx, start_index, bucket):
     else:
         start_string = ' -s ' + str(start_index)
     if bucket:
-        start_string = start_string + ' -b'
+        start_string = start_string + ' -b 0'
     processes = ()
     for process_number in range(spider_range_idx[0], spider_range_idx[1]):
         processes = processes + ('spidermother.py -f {}{}'.format(process_number, start_string),)

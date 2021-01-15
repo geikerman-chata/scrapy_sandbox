@@ -83,7 +83,7 @@ def main(filenumber, start_spider_index, bucket_save, bucket):
             if bucket_save:
                 bucket_sub_dir = 'ta-crawler/raw-output/'
                 run_spider(BabySpider, settings, spiderfeed.current_url)
-                upload_blob(bucket, file, str(Path(bucket_sub_dir + filename)))
+                upload_blob(bucket, str(file), str(Path(bucket_sub_dir + filename)))
                 os.remove(file)
             else:
                 run_spider(BabySpider, settings, spiderfeed.current_url)

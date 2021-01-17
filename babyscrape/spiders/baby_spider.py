@@ -109,7 +109,10 @@ class BabySpider(scrapy.Spider):
         return review
 
     def check_language(self, review_response):
-        return detect('\n'.join(review_response.css('q.IRsGHoPm *::text').extract()))
+        try:
+            lang = detect('\n'.join(review_response.css('q.IRsGHoPm *::text').extract()))
+        except:
+            lang = None
 
     def try_grab_date(self, review_response):
         scraped_review_date_try = review_response.css('div._2fxQ4TOx *::text').extract()
@@ -132,9 +135,17 @@ class BabySpider(scrapy.Spider):
             scraped_review_date, scraped_date_of_stay = self.try_grab_date(review_response)
         if scraped_review_date:
             refined = scraped_review_date.replace(' wrote a review ', '')
-            review_date = dateparser.parse(refined).strftime("%m-%Y")
+            parsed = dateparser.parse(refined)
+            if parsed:
+                review_date = parsed.strftime("%m-%Y")
+            else:
+                review_date = '00-0000'
         elif scraped_date_of_stay:
-            review_date = dateparser.parse(scraped_date_of_stay).strftime("%m-%Y")
+            parsed = dateparser.parse(scraped_date_of_stay)
+            if parsed:
+                review_date = parsed.strftime("%m-%Y")
+            else:
+                review_date = '00-0000'
         else:
             review_date = '00-0000'
         return review_date

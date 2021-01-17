@@ -41,14 +41,19 @@ if __name__ == "__main__":
     parser.add_argument("--start_index", "-i", help="Which index in the xml to start on")
     parser.add_argument("--start", "-s", help="Start target process file number")
     parser.add_argument("--finish", "-f", help="End target process file number")
+    parser.add_argument("--nobucket", "-n", help='Save output on local machine')
     args = parser.parse_args()
-    bucket = True
+    if args.nobucket:
+        bucket = False
+
+    else:
+        bucket = True
     if args.start and args.finish:
-        range_idx = (int(args.start), int(args.finish), bucket)
+        range_idx = (int(args.start), int(args.finish))
     elif args.start and not args.finish:
-        range_idx = (int(args.start), int(args.start), bucket)
+        range_idx = (int(args.start), int(args.start))
     elif not args.finish and args.finish:
-        range_idx = (int(args.finish), int(args.finish), bucket)
+        range_idx = (int(args.finish), int(args.finish))
     else:
         range_idx = None
 
@@ -56,12 +61,11 @@ if __name__ == "__main__":
         if range_idx[1] > max_spiders - 1:
             range_idx = (range_idx[0], max_spiders - 1)
         if args.start_index:
-            main(range_idx=range_idx, start_idx=args.start_index)
+            main(range_idx=range_idx, start_idx=args.start_index, bucket=bucket)
         else:
-            main(range_idx=range_idx)
+            main(range_idx=range_idx, bucket=bucket)
     else:
         raise InvalidArgument('spider_control.py takes -s and -f as arguments, must be integers < '.format(max_spiders - 1))
-
 
 
 

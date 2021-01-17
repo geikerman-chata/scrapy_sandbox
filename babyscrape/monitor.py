@@ -25,3 +25,12 @@ def sum_inputs(marker_list):
         sum_list.append(i_pair[1] - i_pair[0])
     total = sum(sum_list)
     return total, round(total/len(sum_list), 0)
+
+
+for blob in bucket.list_blobs(prefix='ta-crawler/raw-output'):
+    print(blob.name)
+    break
+
+
+
+

@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 import gzip
 import linecache
 import re
+import errno
+from pathlib import Path
 
 class FileError(Exception):
     pass
@@ -41,6 +43,7 @@ class SpiderFeeder():
             print('Unzipping URL list: {}'.format(self.current_file))
             self.url_list = self.unzip_url()
             self.url_list_len = len(self.url_list)
+            self.stop_index = self.url_list_len - 1
             if not self.marker >= self.url_list_len:
                 self.current_url = self.url_list[self.marker]
                 self.dump_url_list()
@@ -51,6 +54,7 @@ class SpiderFeeder():
         else:
             self.current_url = self.read_url_at_marker()
             self.url_list_len = self.read_num_lines(self.url_txt_file_name)
+            self.stop_index = self.find_stop_index()
 
     def does_file_exist(self, file):
         return os.path.isfile(os.path.join(self.path, file))
@@ -101,14 +105,28 @@ class SpiderFeeder():
     def read_file_at_line(self, file, line):
         return linecache.getline(os.path.join(self.path, file), line + 1)
 
+    def reset_marker_file(self):
+        self.update_marker_file(self.start_index)
+
+    def silent_remove(self, filename):
+        try:
+            os.remove(filename)
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
+
+    def delete_all_marker_files(self):
+        folder_contents = os.listdir(self.path)
+        marker_list = [marker for marker in folder_contents if '_marker_' in marker]
+        for file in marker_list:
+            self.silent_remove(Path(self.path + '/' + file))
+
     def next_url(self):
-        stop_index = self.find_stop_index()
-        if self.marker == self.url_list_len - 1 or self.marker >= stop_index:
+        self.stop_index = self.find_stop_index()
+        if self.marker >= self.stop_index:
             self.continue_feed = False
-            self.current_url = None
         else:
             self.marker += 1
-            marker = self.marker
-            self.update_marker_file(marker)
+            self.update_marker_file(self.marker)
             self.current_url = self.read_url_at_marker()
 

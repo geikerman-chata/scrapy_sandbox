@@ -71,7 +71,6 @@ def main(filenumber, start_spider_index, bucket_save, bucket):
             except FetchProxyFail:
                 pass
         hotel_id = get_hotel_id(spiderfeed.current_url)
-
         if hotel_id:
             filename = spiderfeed.zipfile_id + '-' + hotel_id + '.json'
             file = Path('output/' + filename)
@@ -81,18 +80,16 @@ def main(filenumber, start_spider_index, bucket_save, bucket):
             settings['FEED_FORMAT'] = 'json'
             settings['ROTATING_PROXY_LIST_PATH'] = Path('proxies/proxies{}.txt'.format(filenumber))
             if bucket_save:
-                bucket_sub_dir = 'ta-crawler/raw-output/'
+                bucket_sub_dir = 'ta-crawler/raw-output-2/'
                 run_spider(BabySpider, settings, spiderfeed.current_url)
                 upload_blob(bucket, str(file), str(Path(bucket_sub_dir + filename)))
                 os.remove(file)
             else:
                 run_spider(BabySpider, settings, spiderfeed.current_url)
-
         else:
             print('Hotel ID not found in URL!!')
         spiderfeed.next_url()
         iteration += 1
-
 
 def silent_remove(filename):
     try:
@@ -109,7 +106,6 @@ class FetchProxyFail(Exception):
 if __name__ == "__main__":
     sys.path.insert(0, './spiders')
     from baby_spider import BabySpider
-
     bucket = 'nlp_resources'
     parser = argparse.ArgumentParser()
     parser.add_argument("--filenumber", "-f", help="File number index of the file in the input directory to run "

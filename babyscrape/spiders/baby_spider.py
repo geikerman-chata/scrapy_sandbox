@@ -113,6 +113,7 @@ class BabySpider(scrapy.Spider):
             lang = detect('\n'.join(review_response.css('q.IRsGHoPm *::text').extract()))
         except:
             lang = None
+        return lang
 
     def try_grab_date(self, review_response):
         scraped_review_date_try = review_response.css('div._2fxQ4TOx *::text').extract()

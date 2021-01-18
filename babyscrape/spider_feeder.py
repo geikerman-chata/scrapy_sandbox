@@ -115,11 +115,27 @@ class SpiderFeeder():
             if e.errno != errno.ENOENT:
                 raise
 
+    def delete_marker_files_with_marker(self, index):
+        folder_contents = os.listdir(self.path)
+        marker_list = [marker for marker in folder_contents if '_marker_' + str(index) in marker]
+        for file in marker_list:
+            self.silent_remove(Path(self.path + '/' + file))
+
     def delete_all_marker_files(self):
         folder_contents = os.listdir(self.path)
         marker_list = [marker for marker in folder_contents if '_marker_' in marker]
         for file in marker_list:
             self.silent_remove(Path(self.path + '/' + file))
+
+    def create_marker_files_for_all_xmls(self, marker):
+        folder_contents = os.listdir(self.path)
+        xmls = [marker for marker in folder_contents if 'xml' in marker]
+        for xml in xmls:
+            zipfile_id = xml.split('-')[-1].replace('.xml.gz', '')
+            marker_file_name = xml.replace('.xml.gz', '_marker_{}.txt'.format(marker))
+            with open(os.path.join(self.path, marker_file_name), 'w') as writer:
+                writer.write(str(marker))
+
 
     def next_url(self):
         self.stop_index = self.find_stop_index()

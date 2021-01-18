@@ -72,7 +72,7 @@ class SpiderFeeder():
 
     def find_closest_in_list(self, num_list, target):
         nearest = min(num_list, key=lambda x: abs(x - target) if x > target else self.url_list_len-1)
-        if nearest == 0:
+        if nearest == 0 or nearest <= self.start_index:
             return self.url_list_len - 1
         else:
             return nearest - 1

@@ -44,23 +44,23 @@ def split_reviews(bucket_name, full_dict):
     else:
         meta_key = meta_key_list[0]
         for review_key in full_dict:
-            bucket_sub_dir = bucket_name
+            bucket_sub_dir = bucket_name + '/ta-crawler'
             if review_key[0] == 'Y':
-                bucket_sub_dir += 'response/'
+                bucket_sub_dir += '/response'
                 if full_dict[review_key]['review_language']:
                     lang = full_dict[review_key]['review_language']
                 else:
                     lang = 'null'
-                bucket_sub_dir += lang + '/'
+                bucket_sub_dir += '/' + lang + '/'
                 save_split_review(bucket_name, bucket_sub_dir, full_dict, meta_key, review_key)
 
             elif review_key[0] == 'N':
-                bucket_sub_dir += 'no_response/'
+                bucket_sub_dir += '/no_response'
                 if full_dict[review_key]['review_language']:
                     lang = full_dict[review_key]['review_language']
                 else:
                     lang = 'null'
-                bucket_sub_dir += lang + '/'
+                bucket_sub_dir += '/' + lang + '/'
                 save_split_review(bucket_name, bucket_sub_dir, full_dict, meta_key, review_key)
             else:
                 pass

@@ -37,14 +37,13 @@ def save_split_review(bucket_name, bucket_sub_dir, full_dict, meta_key, review_k
     upload_json_blob(bucket_name, data_packet, blob_save_path)
 
 
-def split_reviews(bucket_name, full_dict):
+def split_reviews(bucket_name, full_dict, bucket_sub_dir):
     meta_key_list = [key for key in full_dict.keys() if key[0] == 'g']
     if len(meta_key_list) != 1:
         pass
     else:
         meta_key = meta_key_list[0]
         for review_key in full_dict:
-            bucket_sub_dir = 'ta-crawler/'
             if review_key[0] == 'Y':
                 bucket_sub_dir += 'response/'
                 if full_dict[review_key]['review_language']:
@@ -66,12 +65,12 @@ def split_reviews(bucket_name, full_dict):
                 pass
 
 
-def split_file_into_buckets(bucket_name, file):
+def split_file_into_buckets(bucket_name, file, bucket_sub_dir='ta-crawler/'):
     contents = load_contents(file)
     if contents:
         json_data = json.loads(contents)
         if json_data:
             full_dict = json_data[0]
-            split_reviews(bucket_name, full_dict)
+            split_reviews(bucket_name, full_dict, bucket_sub_dir)
 
 

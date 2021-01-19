@@ -78,16 +78,8 @@ def main():
     bunch_increment = int(round(float(len(task_list))/num_workers))
     task_chunks = [task_list[x:x+bunch_increment] for x in range(0, len(task_list), bunch_increment)]
     bucket_name = 'nlp_resources'
-    bucket_sub_dir = 'ta-crawler/test/'
-
+    bucket_sub_dir = 'ta-crawler/'
     split_google_blobs(task_chunks[worker_id], worker_id, bucket_name, bucket_sub_dir)
-
-    #with Pool(processes=num_workers) as pool:
-       # test = [(task_chunks[i], i, bucket_name, bucket_sub_dir) for i in range(0, num_workers)]
-
-       #pool.starmap(split_google_blob,
-       #              [(task_chunks[i], i, bucket_name, bucket_sub_dir) for i in range(0, num_workers)])
-
 
 if __name__ == "__main__":
     main()

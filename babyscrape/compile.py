@@ -1,76 +1,69 @@
 from google.cloud import storage
 import json
 from pathlib import Path
+from split_output import split_file_into_buckets
+from multiprocessing import Pool
+from multiprocessing import get_context
+import argparse
+
+class InvalidArgument(Exception):
+    pass
 
 client = storage.Client()
 bucket = client.bucket('nlp_resources')
+print("Fetching Bucket List...takes a minute")
+full_list = list(bucket.list_blobs(prefix='ta-crawler/raw-output-3'))
+print("Number of files in bucket".format(len(full_list)))
 
 
-def repack_data(blob_dict, meta_key, key):
-    data_pack = {}
-    data_pack[meta_key + '-' + key] = {
-        'meta_data': blob_dict[meta_key],
-        'review': blob_dict[key]
-    }
-    return data_pack
+done_list = {}
+parser = argparse.ArgumentParser()
+parser.add_argument("--workers", "-n", help="Number of workers to split up work")
+parser.add_argument("--half", "-h", help="which half of the full list the workers will work on, 1 or 2")
+args = parser.parse_args()
 
 
-def save_response(bucket_sub_dir, json_data, filename):
-    bucket_name = 'nlp_resources'
-    upload_json_blob(bucket_name, json_data, str(Path(bucket_sub_dir + filename)))
-
-
-def upload_json_blob(bucket_name, json_data, destination_blob_name):
-  storage_client = storage.Client()
-  bucket = storage_client.get_bucket(bucket_name)
-  blob = bucket.blob(destination_blob_name)
-  blob.upload_from_string(
-      data=json.dumps(json_data),
-      content_type='application/json'
-  )
-  print('File uploaded to {}.'.format(
-      destination_blob_name))
-
-
-def isolate_english_responses(blob_dict):
-    en_reviews_w_response = []
-    en_reviews_no_response = []
-    meta_key_list = [key for key in blob_dict.keys() if key[0] =='g']
-    if len(meta_key_list) == 1:
-        meta_key=meta_key_list[0]
-        for key in blob_dict:
-            if key[0] == 'Y':
-                if blob_dict[key]['review_language'] == 'en':
-                    data_pack = repack_data(blob_dict, meta_key, key)
-                    en_reviews_w_response.append(data_pack)
-            elif key[0] == 'N':
-                if blob_dict[key]['review_language'] == 'en':
-                    data_pack = repack_data(blob_dict, meta_key, key)
-                    en_reviews_no_response.append(data_pack)
-            else:
-                pass
-        return en_reviews_w_response, en_reviews_no_response
+def divine_args(args, full_list):
+    if args.half:
+        halfway = int(round((float(len(full_list)))/2))
+        if args.half == 1:
+            task_list = full_list[:halfway]
+        elif args.half == 2:
+            task_list = full_list[halfway:]
+        else:
+            raise InvalidArgument('-h argument must be either 1 or 2')
     else:
-        return None, None
+        task_list = full_list
+
+    if args.workers:
+        try:
+            num_workers = int(args.workers)
+            if num_workers == 0:
+                raise InvalidArgument('-n must be nonzero int')
+        except InvalidArgument:
+            raise InvalidArgument('-n must be nonzero int')
+    else:
+        num_workers = 1
+
+    return task_list, num_workers
 
 
-for blob in bucket.list_blobs(prefix='ta-crawler/raw-output'):
-    bytes_data = blob.download_as_string()
-    if bytes_data:
-        json_data = json.loads(bytes_data)
-        if json_data:
-            blob_dict = json_data[0]
-            en_reviews_w_response, en_reviews_no_response = isolate_english_responses(blob_dict)
-            if en_reviews_w_response:
-                for review in en_reviews_w_response:
-                    filename = list(review.keys())[0]
-                    bucket_sub_dir = 'ta-crawler/EN_response/'
-                    save_response(bucket_sub_dir, review, filename)
-            if en_reviews_no_response:
-                for no_review in en_reviews_no_response:
-                    filename = list(no_review.keys())[0]
-                    bucket_sub_dir = 'ta-crawler/EN_no_response/'
-                    save_response(bucket_sub_dir, no_review, filename)
+task_list, num_workers = divine_args(args, full_list)
+bunch_increment = int(round(float(len(task_list))/num_workers))
+chunks = [task_list[x:x+bunch_increment] for x in range(0, len(task_list), bunch_increment)]
+
+
+
+
+
+
+#for blob in bucket.list_blobs(prefix='ta-crawler/raw-output-3'):
+#    bytes_data = blob.download_as_string()
+#    if bytes_data:
+#        json_data = json.loads(bytes_data)
+#        if json_data:
+#            blob_dict = json_data[0]
+
 
 
 

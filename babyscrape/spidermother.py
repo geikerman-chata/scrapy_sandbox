@@ -86,12 +86,12 @@ def main(filenumber, start_spider_index, bucket_save, bucket):
                 bucket_sub_dir = 'ta-crawler/raw-output-3/'
                 run_spider(BabySpider, settings, spiderfeed.current_url)
                 upload_blob(bucket, str(file), str(Path(bucket_sub_dir + filename)))
-                split_file_into_buckets(str(file))
+                split_file_into_buckets(bucket, str(file))
                 os.remove(file)
             else:
                 run_spider(BabySpider, settings, spiderfeed.current_url)
         else:
-            print('Hotel ID not found in URL!!')
+            print('Hotel ID not found in URL!!'
         spiderfeed.next_url()
         iteration += 1
 

@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 from google.cloud import storage
+import copy
 
 
 def load_contents(file):
@@ -37,13 +38,14 @@ def save_split_review(bucket_name, bucket_sub_dir, full_dict, meta_key, review_k
     upload_json_blob(bucket_name, data_packet, blob_save_path)
 
 
-def split_reviews(bucket_name, full_dict, bucket_sub_dir):
+def split_reviews(bucket_name, full_dict, bucket_sub_dir_in):
     meta_key_list = [key for key in full_dict.keys() if key[0] == 'g']
     if len(meta_key_list) != 1:
         pass
     else:
         meta_key = meta_key_list[0]
         for review_key in full_dict:
+            bucket_sub_dir = copy.deepcopy(bucket_sub_dir_in)
             if review_key[0] == 'Y':
                 bucket_sub_dir += 'response/'
                 if full_dict[review_key]['review_language']:

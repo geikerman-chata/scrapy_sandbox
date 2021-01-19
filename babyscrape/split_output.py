@@ -44,7 +44,7 @@ def split_reviews(bucket_name, full_dict):
     else:
         meta_key = meta_key_list[0]
         for review_key in full_dict:
-            bucket_sub_dir = bucket_name + '/ta-crawler'
+            bucket_sub_dir = '/ta-crawler'
             if review_key[0] == 'Y':
                 bucket_sub_dir += '/response'
                 if full_dict[review_key]['review_language']:

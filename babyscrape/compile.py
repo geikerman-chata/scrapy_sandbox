@@ -13,7 +13,7 @@ client = storage.Client()
 bucket = client.bucket('nlp_resources')
 print("Fetching Bucket List...takes a minute")
 full_list = list(bucket.list_blobs(prefix='ta-crawler/raw-output-3'))
-print("Number of files in bucket".format(len(full_list)))
+print("Number of files in bucket: {}".format(len(full_list)))
 
 
 done_list = {}
@@ -26,12 +26,12 @@ args = parser.parse_args()
 def divine_args(args, full_list):
     if args.half:
         halfway = int(round((float(len(full_list)))/2))
-        if args.half == 1:
+        if args.half == '1':
             task_list = full_list[:halfway]
-        elif args.half == 2:
+        elif args.half == '2':
             task_list = full_list[halfway:]
         else:
-            raise InvalidArgument('-h argument must be either 1 or 2')
+            raise InvalidArgument('-d argument must be either 1 or 2')
     else:
         task_list = full_list
 

@@ -49,13 +49,13 @@ def run_spider(spider, settings, url):
 
 
 def upload_blob(bucket_name, source_file_name, destination_blob_name):
-  storage_client = storage.Client()
-  bucket = storage_client.get_bucket(bucket_name)
-  blob = bucket.blob(destination_blob_name)
-  blob.upload_from_filename(source_file_name)
-  print('File {} uploaded to {}.'.format(
-      source_file_name,
-      destination_blob_name))
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+    blob.upload_from_filename(source_file_name)
+    print('File {} uploaded to {}.'.format(
+        source_file_name,
+        destination_blob_name))
 
 
 def main(filenumber, start_spider_index, bucket_save, bucket):
@@ -91,7 +91,7 @@ def main(filenumber, start_spider_index, bucket_save, bucket):
             else:
                 run_spider(BabySpider, settings, spiderfeed.current_url)
         else:
-            print('Hotel ID not found in URL!!'
+            print('Hotel ID not found in URL!!')
         spiderfeed.next_url()
         iteration += 1
 

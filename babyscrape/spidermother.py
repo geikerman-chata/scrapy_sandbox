@@ -83,9 +83,9 @@ def main(filenumber, start_spider_index, bucket_save, bucket):
             settings['FEED_FORMAT'] = 'json'
             settings['ROTATING_PROXY_LIST_PATH'] = Path('proxies/proxies{}.txt'.format(filenumber))
             if bucket_save:
-                bucket_sub_dir_raw = 'ta-crawler/raw-output-4/'
+                #bucket_sub_dir_raw = 'ta-crawler/raw-output-4/'
                 run_spider(BabySpider, settings, spiderfeed.current_url)
-                upload_blob(bucket, str(file), str(Path(bucket_sub_dir_raw + filename)))
+                #upload_blob(bucket, str(file), str(Path(bucket_sub_dir_raw + filename)))
                 split_file_into_buckets(bucket, str(file))
                 os.remove(file)
             else:

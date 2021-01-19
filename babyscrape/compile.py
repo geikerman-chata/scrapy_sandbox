@@ -19,7 +19,7 @@ print("Number of files in bucket".format(len(full_list)))
 done_list = {}
 parser = argparse.ArgumentParser()
 parser.add_argument("--workers", "-n", help="Number of workers to split up work")
-parser.add_argument("--half", "-h", help="which half of the full list the workers will work on, 1 or 2")
+parser.add_argument("--half", "-d", help="which half of the full list the workers will work on, 1 or 2")
 args = parser.parse_args()
 
 

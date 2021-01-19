@@ -42,10 +42,18 @@ def divine_args(args, full_list):
     else:
         num_workers = 1
 
-    return task_list, num_workers
+    if args.worker_id:
+        try:
+            worker_id = int(args.worker_id)
+        except InvalidArgument:
+            raise InvalidArgument('-i must be int')
+    else:
+        worker_id = 0
+
+    return task_list, num_workers, worker_id
 
 
-def split_google_blob(task_chunk, worker_id, bucket_name, bucket_sub_dir):
+def split_google_blobs(task_chunk, worker_id, bucket_name, bucket_sub_dir):
     print('Worker Number: {}'.format(worker_id))
     for blob in task_chunk:
         blob_dict = blob_2_dict(blob)
@@ -61,23 +69,27 @@ def main():
     print("Number of files in bucket: {}".format(len(full_list)))
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--workers", "-n", help="Number of workers to split up work")
-    parser.add_argument("--half", "-d", help="which half of the full list the workers will work on, 1 or 2")
+    parser.add_argument("--workers", "-n", help="Number of total workers in this bucket half")
+    parser.add_argument("--half", "-d", help="Which half of the full list the workers will work on, 1 or 2")
+    parser.add_argument("--worker_id", "-i", help="worker id")
     args = parser.parse_args()
 
-    task_list, num_workers = divine_args(args, full_list)
+    task_list, num_workers, worker_id = divine_args(args, full_list)
     bunch_increment = int(round(float(len(task_list))/num_workers))
     task_chunks = [task_list[x:x+bunch_increment] for x in range(0, len(task_list), bunch_increment)]
-
     bucket_name = 'nlp_resources'
     bucket_sub_dir = 'ta-crawler/test/'
 
-    with Pool(processes=num_workers) as pool:
-        pool.starmap(split_google_blob,
-                     [(task_chunks[i], i, bucket_name, bucket_sub_dir) for i in range(0, num_workers)])
+    split_google_blobs(task_chunks[worker_id], worker_id, bucket_name, bucket_sub_dir)
+
+    #with Pool(processes=num_workers) as pool:
+       # test = [(task_chunks[i], i, bucket_name, bucket_sub_dir) for i in range(0, num_workers)]
+
+       #pool.starmap(split_google_blob,
+       #              [(task_chunks[i], i, bucket_name, bucket_sub_dir) for i in range(0, num_workers)])
 
 
-if __name__ =="__main__":
+if __name__ == "__main__":
     main()
 
 

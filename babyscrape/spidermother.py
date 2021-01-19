@@ -14,6 +14,7 @@ from fetch_proxies import FetchProxies
 import argparse
 from pathlib import Path
 from google.cloud import storage
+from split_output import split_file_into_buckets
 
 
 def get_hotel_id(url):
@@ -46,6 +47,7 @@ def run_spider(spider, settings, url):
     if result is not None:
         raise result
 
+
 def upload_blob(bucket_name, source_file_name, destination_blob_name):
   storage_client = storage.Client()
   bucket = storage_client.get_bucket(bucket_name)
@@ -54,6 +56,7 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
   print('File {} uploaded to {}.'.format(
       source_file_name,
       destination_blob_name))
+
 
 def main(filenumber, start_spider_index, bucket_save, bucket):
     iteration = 0
@@ -83,6 +86,7 @@ def main(filenumber, start_spider_index, bucket_save, bucket):
                 bucket_sub_dir = 'ta-crawler/raw-output-3/'
                 run_spider(BabySpider, settings, spiderfeed.current_url)
                 upload_blob(bucket, str(file), str(Path(bucket_sub_dir + filename)))
+                split_file_into_buckets(str(file))
                 os.remove(file)
             else:
                 run_spider(BabySpider, settings, spiderfeed.current_url)

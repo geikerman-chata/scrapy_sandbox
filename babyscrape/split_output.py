@@ -1,10 +1,6 @@
 from pathlib import Path
 import json
 from google.cloud import storage
-#filename = "1596783909-g1017091-d2396979.json"
-
-#file = Path('output/' + filename)
-#class SplitOutput(file)
 
 
 def load_contents(file):
@@ -38,14 +34,11 @@ def save_split_review(bucket_name, bucket_sub_dir, full_dict, meta_key, review_k
     data_packet = repack_data(full_dict, meta_key, review_key)
     blob_filename = meta_key + '-' + review_key
     blob_save_path = str(Path(bucket_sub_dir + blob_filename))
-    #upload_json_blob(bucket_name, data_packet, blob_save_path)
-    print(blob_save_path)
-    print(data_packet)
+    upload_json_blob(bucket_name, data_packet, blob_save_path)
 
 
 def split_reviews(bucket_name, full_dict):
     meta_key_list = [key for key in full_dict.keys() if key[0] == 'g']
-
     if len(meta_key_list) != 1:
         pass
     else:

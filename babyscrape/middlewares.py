@@ -89,12 +89,12 @@ class BabyscrapeDownloaderMiddleware(object):
     def readmore_click_response(self, request, spider):
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
-        options.addArguments("enable-automation")
-        options.addArguments("--no-sandbox")
-        options.addArguments("--disable-infobars")
-        options.addArguments("--disable-dev-shm-usage")
-        options.addArguments("--disable-browser-side-navigation")
-        options.addArguments("--disable-gpu")
+        options.add_argument("enable-automation")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-infobars")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-browser-side-navigation")
+        options.add_argument("--disable-gpu")
         driver = webdriver.Chrome(options=options)
         driver.get(request.url)
         readmore_css = 'span._3maEfNCR:nth-of-type(1)'

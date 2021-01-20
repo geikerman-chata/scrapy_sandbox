@@ -106,6 +106,7 @@ class BabyscrapeDownloaderMiddleware(object):
 
         body = driver.page_source
         drive_url = driver.current_url
+        driver.stop_client()
         driver.close()
         driver.quit()
         spider.readmore_clicked = True

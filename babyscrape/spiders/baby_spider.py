@@ -22,7 +22,7 @@ class BabySpider(scrapy.Spider):
     is_response = False
     start_urls = [
         #"https://www.tripadvisor.ca/Hotel_Review-g807293-d15763094-Reviews-AlpinLodge_Flachau-Flachau_Austrian_Alps.html"
-        "https://www.tripadvisor.ca/Hotel_Review-g635886-d3675778-Reviews-El_Torito_de_Rota-Rota_Province_of_Cadiz_Andalucia.html"
+        "https://www.tripadvisor.ca/Hotel_Review-g154913-d10276193-Reviews-Hilton_Garden_Inn_Calgary_Downtown-Calgary_Alberta.html"
         ]
 
     def parse(self, response):

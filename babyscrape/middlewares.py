@@ -88,7 +88,7 @@ class BabyscrapeDownloaderMiddleware(object):
     def readmore_click_response(self, request, spider):
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
-        driver = webdriver.Chrome(executable_path='/testing/babyscrape/chromedriver', chrome_options=options)
+        driver = webdriver.Chrome('chromedriver', chrome_options=options)
         driver.get(request.url)
         readmore_css = 'span._3maEfNCR:nth-of-type(1)'
         attempts = 0

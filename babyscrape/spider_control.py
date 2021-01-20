@@ -1,7 +1,7 @@
 import os
 from multiprocessing import Pool
-from pathlib import Path
 from multiprocessing import get_context
+from pathlib import Path
 import argparse
 
 
@@ -43,11 +43,12 @@ if __name__ == "__main__":
     parser.add_argument("--finish", "-f", help="End target process file number")
     parser.add_argument("--nobucket", "-n", help='Save output on local machine')
     args = parser.parse_args()
+
     if args.nobucket:
         bucket = False
-
     else:
         bucket = True
+
     if args.start and args.finish:
         range_idx = (int(args.start), int(args.finish))
     elif args.start and not args.finish:

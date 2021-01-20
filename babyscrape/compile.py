@@ -79,7 +79,10 @@ def main():
     task_chunks = [task_list[x:x+bunch_increment] for x in range(0, len(task_list), bunch_increment)]
     bucket_name = 'nlp_resources'
     bucket_sub_dir = 'ta-crawler/'
-    split_google_blobs(task_chunks[worker_id], worker_id, bucket_name, bucket_sub_dir)
+    task_chunk = task_chunks[worker_id]
+    del task_chunks
+    del full_list
+    split_google_blobs(task_chunk, worker_id, bucket_name, bucket_sub_dir)
 
 if __name__ == "__main__":
     main()

@@ -16,6 +16,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import importlib
+import os
+from pathlib import Path
 
 class BabyscrapeSpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
@@ -86,7 +88,7 @@ class BabyscrapeDownloaderMiddleware(object):
     def readmore_click_response(self, request, spider):
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
-        driver = webdriver.Chrome('chromedriver.exe', chrome_options=options)
+        driver = webdriver.Chrome('chromedriver.exe',executable_path=Path(os.getcwd), chrome_options=options)
         driver.get(request.url)
         readmore_css = 'span._3maEfNCR:nth-of-type(1)'
         attempts = 0

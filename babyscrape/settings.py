@@ -66,8 +66,8 @@ COOKIES_ENABLED = False
 #ROTATING_PROXY_LIST_PATH ='proxies.txt'
 
 DOWNLOADER_MIDDLEWARES = {
-    'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
-    'rotating_proxies.middlewares.BanDetectionMiddleware': 620,
+#    'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
+#    'rotating_proxies.middlewares.BanDetectionMiddleware': 620,
     'babyscrape.middlewares.BabyscrapeDownloaderMiddleware': 543,
     'babyscrape.middlewares.RotateUserAgentMiddleware': 110
 }

@@ -68,7 +68,7 @@ def main(filenumber, start_spider_index, bucket_save, bucket):
         raise FetchProxyFail('Proxy List could not be populated on init')
 
     while spiderfeed.continue_feed:
-        if iteration % 50 == 0 and iteration != 0:
+        if iteration % 150 == 0 and iteration != 0:
             try:
                 proxies.fetch()
             except FetchProxyFail:
@@ -81,7 +81,7 @@ def main(filenumber, start_spider_index, bucket_save, bucket):
             settings = get_project_settings()
             settings['FEED_URI'] = Path(file)
             settings['FEED_FORMAT'] = 'json'
-            settings['ROTATING_PROXY_LIST_PATH'] = Path('proxies/proxies{}.txt'.format(filenumber))
+            #settings['ROTATING_PROXY_LIST_PATH'] = Path('proxies/proxies{}.txt'.format(filenumber))
             if bucket_save:
                 #bucket_sub_dir_raw = 'ta-crawler/raw-output-4/'
                 run_spider(BabySpider, settings, spiderfeed.current_url)
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     parser.add_argument("--filenumber", "-f", help="File number index of the file in the input directory to run "
                                                    "spidermother on")
     parser.add_argument("--spider_start_idx", "-s", help="Index in the xml the start feeder will begin ")
-    parser.add_argument("--bucket_save", "-b", help ="Save to default bucket path on google cloud: {}".format(bucket))
+    parser.add_argument("--bucket_save", "-b", help="Save to default bucket path on google cloud: {}".format(bucket))
     args = parser.parse_args()
 
     if args.bucket_save:

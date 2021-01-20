@@ -67,7 +67,7 @@ def split_reviews(bucket_name, full_dict, bucket_sub_dir_in):
                 pass
 
 
-def split_file_into_buckets(bucket_name, file, bucket_sub_dir='ta-crawler/'):
+def split_file_into_buckets(bucket_name, file, bucket_sub_dir='ta-hotel/'):
     contents = load_contents(file)
     if contents:
         json_data = json.loads(contents)

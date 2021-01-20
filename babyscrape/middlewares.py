@@ -15,6 +15,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
 import importlib
 import os
 from pathlib import Path
@@ -88,6 +89,12 @@ class BabyscrapeDownloaderMiddleware(object):
     def readmore_click_response(self, request, spider):
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
+        options.addArguments("enable-automation")
+        options.addArguments("--no-sandbox")
+        options.addArguments("--disable-infobars")
+        options.addArguments("--disable-dev-shm-usage")
+        options.addArguments("--disable-browser-side-navigation")
+        options.addArguments("--disable-gpu")
         driver = webdriver.Chrome(options=options)
         driver.get(request.url)
         readmore_css = 'span._3maEfNCR:nth-of-type(1)'
@@ -106,7 +113,6 @@ class BabyscrapeDownloaderMiddleware(object):
 
         body = driver.page_source
         drive_url = driver.current_url
-        driver.stop_client()
         driver.close()
         driver.quit()
         spider.readmore_clicked = True

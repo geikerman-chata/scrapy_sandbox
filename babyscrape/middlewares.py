@@ -109,6 +109,8 @@ class BabyscrapeDownloaderMiddleware(object):
                 attempts += 1
                 print('Did not locate the "Read more" element, retrying: {}/2 '.format(attempts))
         if attempts == 2:
+            driver.close()
+            driver.quit()
             raise CloseSpider(reason='Readmore Element not Found')
 
         body = driver.page_source

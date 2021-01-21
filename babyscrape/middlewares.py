@@ -99,10 +99,11 @@ class BabyscrapeDownloaderMiddleware(object):
         driver.get(request.url)
         readmore_css = 'span._3maEfNCR:nth-of-type(1)'
         attempts = 0
+
         while attempts < 2:
             try:
                 readmore_present = EC.presence_of_element_located((By.CSS_SELECTOR, readmore_css))
-                element = WebDriverWait(driver, 5).until(readmore_present)
+                element = WebDriverWait(driver, 3).until(readmore_present)
                 element.click()
                 break
             except:

@@ -2,7 +2,7 @@ from pathlib import Path
 import json
 from google.cloud import storage
 import copy
-
+import time
 
 def load_contents(file):
     with open(file, 'r') as open_file:
@@ -32,11 +32,18 @@ def upload_json_blob(bucket_name, json_data, destination_blob_name):
 
 
 def save_split_review(bucket_name, bucket_sub_dir, full_dict, meta_key, review_key):
+    attempts = 0
     data_packet = repack_data(full_dict, meta_key, review_key)
     blob_filename = meta_key + '-' + review_key
     blob_save_path = str(Path(bucket_sub_dir + blob_filename))
-    upload_json_blob(bucket_name, data_packet, blob_save_path)
-
+    while attempts <= 2:
+        try:
+            upload_json_blob(bucket_name, data_packet, blob_save_path)
+            break
+        except:
+            print('Upload Failed, retrying: {} / 2'.format(attempts + 1))
+            time.sleep(1)
+            attempts += 1
 
 def split_reviews(bucket_name, full_dict, bucket_sub_dir_in):
     meta_key_list = [key for key in full_dict.keys() if key[0] == 'g']

@@ -27,10 +27,6 @@ def sum_inputs(marker_list):
     return total, round(total/len(sum_list), 0)
 
 
-for blob in bucket.list_blobs(prefix='ta-crawler/raw-output'):
-    print(blob.name)
-    break
-
 
 
 

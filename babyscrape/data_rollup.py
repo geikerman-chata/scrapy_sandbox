@@ -44,6 +44,7 @@ def rollup_chunk(task_chunk, chunk_name, bad_reviews):
     del rolling_reviews
     return bad_reviews
 
+
 def upload_json_blob(bucket_name, json_data, destination_blob_name):
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
@@ -62,7 +63,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--chunk_start", "-s", help="chunk start")
     parser.add_argument("--chunk_end", "-f", help="chunk finish")
-    parser.add_argument("--chunk_size", "-s", help="worker id")
+    parser.add_argument("--chunk_size", "-c", help="worker id")
     parser.add_argument("--subdir", "-p", help="Subdirectory to roll up")
     args = parser.parse_args()
 
@@ -94,7 +95,6 @@ def main():
         bad_reviews = rollup_chunk(chunk, chunk_save_path, bad_reviews)
     if bad_reviews:
         upload_json_blob('nlp_resources', bad_reviews, '{}/bad_reviews{}.json'.format(subdir_top, str(file_number+1)))
-
 
 if __name__ == "__main__":
     main()

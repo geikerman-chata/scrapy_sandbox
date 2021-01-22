@@ -6,6 +6,7 @@ from datetime import datetime
 from csv import writer
 import time
 from langdetect import detect
+from scrapy.exceptions import CloseSpider
 
 class NoDateExtracted(Exception):
     pass
@@ -21,8 +22,8 @@ class BabySpider(scrapy.Spider):
     tic = time.time()
     is_response = False
     start_urls = [
-        #"https://www.tripadvisor.ca/Hotel_Review-g807293-d15763094-Reviews-AlpinLodge_Flachau-Flachau_Austrian_Alps.html"
-        "https://www.tripadvisor.ca/Hotel_Review-g154913-d10276193-Reviews-Hilton_Garden_Inn_Calgary_Downtown-Calgary_Alberta.html"
+        "https://www.tripadvisor.ca/Hotel_Review-g807293-d15684719-Reviews-Villa_Valentine-Flachau_Austrian_Alps.html"
+        #"https://www.tripadvisor.ca/Hotel_Review-g212533-d777188-Reviews-Shamrock_Inn_Hotel-Lahinch_County_Clare.html"
         ]
 
     def parse(self, response):
@@ -62,16 +63,22 @@ class BabySpider(scrapy.Spider):
 
         return self.check_and_scrape_next_page(response)
 
-
     def check_and_scrape_next_page(self, response):
         root_url = 'https://www.tripadvisor.ca/'
         next_button_disabled = response.css('span.ui_button.nav.next.primary.disabled').extract() != []
         next_href = response.css('a.ui_button.nav.next.primary::attr(href)').extract_first()
+
+        if response.body == "Emergency":
+            if self.page > 1:
+                print('Emergency Dump!')
+                self.emergency_dump()
+            raise CloseSpider(reason='Readmore Element not Found')
+
         if next_button_disabled or next_href is None:
             for review in self.scrape_list:
                 response_signal = 'Y' if review['review']['review_response'] else 'N'
                 unique_key = response_signal + '-' + str(review['review']['review_date']) + '-' \
-                             + str(review['review']['id_user'])
+                    + str(review['review']['id_user'])
                 self.metadata[unique_key] = review['review']
             self.status = 'Success'
             yield self.metadata
@@ -82,6 +89,14 @@ class BabySpider(scrapy.Spider):
             self.page += 1
             print("Opening Page: {}".format(self.page))
             yield Request(next_page, callback=self.parse)
+
+    def emergency_dump(self):
+        for review in self.scrape_list:
+            response_signal = 'Y' if review['review']['review_response'] else 'N'
+            unique_key = response_signal + '-' + str(review['review']['review_date']) + '-' \
+                         + str(review['review']['id_user'])
+            self.metadata[unique_key] = review['review']
+        yield self.metadata
 
     def scrape_review(self, review_response):
         def handle_empty(input):

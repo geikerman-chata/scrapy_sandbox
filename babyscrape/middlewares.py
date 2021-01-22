@@ -96,6 +96,7 @@ class BabyscrapeDownloaderMiddleware(object):
         options.add_argument("--disable-browser-side-navigation")
         options.add_argument("--disable-gpu")
         driver = webdriver.Chrome(options=options)
+        #driver = webdriver.Chrome('chromedriver_win.exe', options=options)
         driver.get(request.url)
         readmore_css = 'span._3maEfNCR:nth-of-type(1)'
         attempts = 0
@@ -112,7 +113,8 @@ class BabyscrapeDownloaderMiddleware(object):
         if attempts == 2:
             driver.close()
             driver.quit()
-            raise CloseSpider(reason='Readmore Element not Found')
+            return HtmlResponse(url=request.url, body="Emergency", encoding='utf-8', request=request)
+            #raise CloseSpider(reason='Readmore Element not Found')
 
         body = driver.page_source
         drive_url = driver.current_url

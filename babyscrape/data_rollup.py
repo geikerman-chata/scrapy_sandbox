@@ -91,10 +91,10 @@ def main():
 
     subdir_top = subdir.split('/')[0]
     for file_number, chunk in enumerate(task):
-        chunk_save_path = '{}/en_reviews_{}.json'.format(subdir_top, str(file_number+1))
+        chunk_save_path = '{}/en_reviews_{}.json'.format(subdir_top, str(chunk_range[1]))
         bad_reviews = rollup_chunk(chunk, chunk_save_path, bad_reviews)
     if bad_reviews:
-        upload_json_blob('nlp_resources', bad_reviews, '{}/bad_reviews{}.json'.format(subdir_top, str(file_number+1)))
+        upload_json_blob('nlp_resources', bad_reviews, '{}/bad_reviews{}.json'.format(subdir_top, str(chunk_range[1])))
 
 if __name__ == "__main__":
     main()

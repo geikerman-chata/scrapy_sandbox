@@ -66,11 +66,6 @@ def main():
     parser.add_argument("--subdir", "-p", help="Subdirectory to roll up")
     args = parser.parse_args()
 
-    args.subdir = 'ta-hotel/response/en'
-    args.chunk_size = '250000'
-    args.chunk_start = '0'
-    args.chunk_end = '1'
-
     if args.subdir:
         print("Fetching Google Bucket list, takes a minute...")
         subdir = args.subdir
@@ -98,7 +93,8 @@ def main():
         chunk_save_path = '{}/en_reviews_{}.json'.format(subdir_top, str(file_number+1))
         bad_reviews = rollup_chunk(chunk, chunk_save_path, bad_reviews)
     if bad_reviews:
-        upload_json_blob('nlp_resources', bad_reviews, '{}/{}.json'.format(subdir_top, 'bad_reviews'))
+        upload_json_blob('nlp_resources', bad_reviews, '{}/bad_reviews{}.json'.format(subdir_top, str(file_number+1)))
+
 
 if __name__ == "__main__":
     main()

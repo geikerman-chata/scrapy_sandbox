@@ -75,9 +75,9 @@ def main():
     parser.add_argument("--subdir", "-p", help="Subdirectory to roll up")
     args = parser.parse_args()
 
-    args.chunk_start = 1
-    args.chunk_size = 250000
-    args.subdir = 'ta-crawler/response/en/'
+    #args.chunk_start = 1
+    #args.chunk_size = 250000
+    #args.subdir = 'ta-crawler/response/en/'
 
     if args.subdir:
         print("Fetching Google Bucket list, takes a minute...")

@@ -2,8 +2,9 @@ from google.cloud import storage
 import json
 from pathlib import Path
 from split_output import split_reviews
-from multiprocessing import Pool, get_context
-from multiprocessing import Pool, freeze_support
+#from multiprocessing import Pool, get_context
+#from multiprocessing import Pool, freeze_support
+
 
 import argparse
 from langdetect import detect
@@ -24,11 +25,12 @@ def check_language(review):
         lang = None
     return lang
 
-def rollup_chunk(task_chunk, chunk_name, bad_reviews):
+def rollup_chunk(task_chunk, save_dir, chunk_name, worker_id):
     rolling_reviews = {}
+    bad_reviews = {}
     test = 0
-    for file_number, review in enumerate(task_chunk):
-        print("Opening file_number: {}".format(file_number))
+    for number, review in enumerate(task_chunk):
+        print("Worker {} Opening file_number: {}".format(worker_id, number))
         review_dict = blob_2_dict(review)
         data_key_list = [key for key in review_dict.keys() if key[0] == 'g']
         if len(data_key_list) > 0:
@@ -42,13 +44,14 @@ def rollup_chunk(task_chunk, chunk_name, bad_reviews):
                         bad_reviews[data_key] = "response not english"
                     else:
                         rolling_reviews[data_key] = review_dict[data_key]
-        if test ==300:
+        test += 1
+        if test == 100:
             break
-
     subdir_top = chunk_name.split('/')[:-1]
-    file_number = chunk_name.split('.')[0][-1]
-    upload_json_blob('nlp_resources', rolling_reviews, chunk_name)
-    upload_json_blob('nlp_resources', bad_reviews, '{}/bad_reviews{}.json'.format(subdir_top, str(file_number)))
+
+    upload_json_blob('nlp_resources', rolling_reviews, save_dir + chunk_name)
+    upload_json_blob('nlp_resources', bad_reviews, '{}bad_reviews{}.json'.format(save_dir, worker_id))
+
 
 
 def upload_json_blob(bucket_name, json_data, destination_blob_name):
@@ -68,17 +71,13 @@ def main():
     bucket = client.bucket('nlp_resources')
     parser = argparse.ArgumentParser()
     parser.add_argument("--chunk_start", "-s", help="chunk start")
-    parser.add_argument("--chunk_end", "-f", help="chunk finish")
     parser.add_argument("--chunk_size", "-c", help="worker id")
     parser.add_argument("--subdir", "-p", help="Subdirectory to roll up")
-    parser.add_argument("--multi", "-m", help='multiprocessing')
     args = parser.parse_args()
 
-    args.subdir = 'ta-hotel/response/en'
-    args.chunk_size = '100000'
-    args.multi = '0'
-    args.chunk_start = None
-    args.chunk_end = None
+    args.chunk_start = 1
+    args.chunk_size = 250000
+    args.subdir = 'ta-crawler/response/en/'
 
     if args.subdir:
         print("Fetching Google Bucket list, takes a minute...")
@@ -90,34 +89,18 @@ def main():
     if args.chunk_size:
         bunch_increment = int(args.chunk_size)
         task_chunks = [full_list[x:x + bunch_increment] for x in range(0, len(full_list), bunch_increment)]
-        if args.chunk_start and args.chunk_end:
-            chunk_range = (int(args.chunk_start), int(args.chunk_end))
-        else:
-            chunk_range = (0, len(task_chunks))
+        del full_list
+        task = task_chunks[int(args.chunk_start)]
+        del task_chunks
     else:
         bunch_increment = 250000
         task_chunks = [full_list[x:x + bunch_increment] for x in range(0, len(full_list), bunch_increment)]
-        del full_list
 
-    bad_reviews = {}
     subdir_top = subdir.split('/')[0]
-    if not args.multi:
-        task = task_chunks[chunk_range[0]:chunk_range[1]]
-        del task_chunks
-        subdir_top = subdir.split('/')[0]
-        for file_number, chunk in enumerate(task):
-            chunk_save_path = '{}/en_reviews_{}.json'.format(subdir_top, str(chunk_range[1]))
-            rollup_chunk(chunk, chunk_save_path, bad_reviews)
-    else:
-        args_list = []
-
-        for worker_num, task in enumerate(task_chunks):
-            chunk_save_path = '{}/en_reviews_{}.json'.format(subdir_top, worker_num)
-            args_list.append((task, chunk_save_path, bad_reviews))
-        with Pool() as pool:
-            pool.starmap(rollup_chunk, args_list)
+    save_dir = '{}/compiled/'.format(subdir_top, int(args.chunk_start))
+    filename = 'en_reviews_{}.json'.format(int(args.chunk_start))
+    rollup_chunk(task, save_dir, filename, int(args.chunk_start))
 
 
 if __name__ == "__main__":
-    freeze_support()
     main()

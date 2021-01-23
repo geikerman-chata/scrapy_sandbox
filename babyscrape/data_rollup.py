@@ -2,9 +2,7 @@ from google.cloud import storage
 import json
 from pathlib import Path
 from split_output import split_reviews
-#from multiprocessing import Pool, get_context
-#from multiprocessing import Pool, freeze_support
-
+from datetime import datetime
 
 import argparse
 from langdetect import detect
@@ -70,12 +68,17 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--chunk_start", "-s", help="chunk start")
     parser.add_argument("--chunk_size", "-c", help="worker id")
-    parser.add_argument("--subdir", "-p", help="Subdirectory to roll up")
+    parser.add_argument("--subdir", "-p", help="subdirectory to roll up")
+    parser.add_argument("--daily","-d", help="is this a daily roll up?")
     args = parser.parse_args()
+    now = datetime.now()
+    date =now.strftime("%d-%m-%Y")
 
     #args.chunk_start = 1
     #args.chunk_size = 250000
     #args.subdir = 'ta-crawler/response/en/'
+
+
 
     if args.subdir:
         print("Fetching Google Bucket list, takes a minute...")
@@ -84,19 +87,20 @@ def main():
         if len(full_list) == 0:
             raise InvalidArgument("given subdirectory is empty")
         print("Number of files in bucket: {}".format(len(full_list)))
-    if args.chunk_size:
+    subdir_top = subdir.split('/')[0]
+    save_dir = '{}/compiled/'.format(subdir_top)
+
+    if args.chunk_size and args.chunk_start:
         bunch_increment = int(args.chunk_size)
         task_chunks = [full_list[x:x + bunch_increment] for x in range(0, len(full_list), bunch_increment)]
         del full_list
         task = task_chunks[int(args.chunk_start)]
         del task_chunks
-    else:
-        bunch_increment = 250000
-        task_chunks = [full_list[x:x + bunch_increment] for x in range(0, len(full_list), bunch_increment)]
+        filename = 'en_reviews_{}.json'.format(int(args.chunk_start))
+    if not args.chunk_size and args.daily:
+        task = full_list
+        filename = 'en_reviews-{}.json'.format(date)
 
-    subdir_top = subdir.split('/')[0]
-    save_dir = '{}/compiled/'.format(subdir_top, int(args.chunk_start))
-    filename = 'en_reviews_{}.json'.format(int(args.chunk_start))
     rollup_chunk(task, save_dir, filename, int(args.chunk_start))
 
 

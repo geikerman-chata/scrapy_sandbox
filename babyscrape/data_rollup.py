@@ -26,7 +26,6 @@ def check_language(review):
 def rollup_chunk(task_chunk, save_dir, chunk_name, worker_id):
     rolling_reviews = {}
     bad_reviews = {}
-    test = 0
     for number, review in enumerate(task_chunk):
         print("Worker {} Opening file_number: {}".format(worker_id, number))
         review_dict = blob_2_dict(review)
@@ -97,11 +96,13 @@ def main():
         task = task_chunks[int(args.chunk_start)]
         del task_chunks
         filename = 'en_reviews_{}.json'.format(int(args.chunk_start))
+        worker_id = args.chunk_start
     if not args.chunk_size and args.daily:
         task = full_list
         filename = 'en_reviews-{}.json'.format(date)
-
-    rollup_chunk(task, save_dir, filename, int(args.chunk_start))
+        worker_id =''
+    
+    rollup_chunk(task, save_dir, filename, worker_id)
 
 
 if __name__ == "__main__":

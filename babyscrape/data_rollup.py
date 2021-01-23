@@ -44,9 +44,7 @@ def rollup_chunk(task_chunk, save_dir, chunk_name, worker_id):
                         bad_reviews[data_key] = "response not english"
                     else:
                         rolling_reviews[data_key] = review_dict[data_key]
-        test += 1
-        if test == 100:
-            break
+
     subdir_top = chunk_name.split('/')[:-1]
 
     upload_json_blob('nlp_resources', rolling_reviews, save_dir + chunk_name)

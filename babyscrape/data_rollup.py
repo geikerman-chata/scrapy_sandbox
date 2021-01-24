@@ -28,20 +28,22 @@ def rollup_chunk(task_chunk, save_dir, chunk_name, worker_id):
     bad_reviews = {}
     for number, review in enumerate(task_chunk):
         print("Worker {} Opening file_number: {}".format(worker_id, number))
-        review_dict = blob_2_dict(review)
-        data_key_list = [key for key in review_dict.keys() if key[0] == 'g']
-        if len(data_key_list) > 0:
-            data_key = data_key_list[0]
-            if "review" in review_dict[data_key].keys():
-                if 'review_text' in review_dict[data_key]['review']:
-                    if len(review_dict[data_key]['review']['review_text']) > 760 \
-                            and review_dict[data_key]['review']['review_text'][-1] == '…':
-                        bad_reviews[data_key] = "truncated"
-                    elif check_language(review_dict[data_key]['review']['review_response']) != 'en':
-                        bad_reviews[data_key] = "response not english"
-                    else:
-                        rolling_reviews[data_key] = review_dict[data_key]
-
+        try:
+            review_dict = blob_2_dict(review)
+            data_key_list = [key for key in review_dict.keys() if key[0] == 'g']
+            if len(data_key_list) > 0:
+                data_key = data_key_list[0]
+                if "review" in review_dict[data_key].keys():
+                    if 'review_text' in review_dict[data_key]['review']:
+                        if len(review_dict[data_key]['review']['review_text']) > 760 \
+                                and review_dict[data_key]['review']['review_text'][-1] == '…':
+                            bad_reviews[data_key] = "truncated"
+                        elif check_language(review_dict[data_key]['review']['review_response']) != 'en':
+                            bad_reviews[data_key] = "response not english"
+                        else:
+                            rolling_reviews[data_key] = review_dict[data_key]
+        except:
+            print('Failed: {}'.format(number))
     subdir_top = chunk_name.split('/')[:-1]
 
     upload_json_blob('nlp_resources', rolling_reviews, save_dir + chunk_name)
@@ -101,7 +103,7 @@ def main():
         task = full_list
         filename = 'en_reviews-{}.json'.format(date)
         worker_id =''
-    
+
     rollup_chunk(task, save_dir, filename, worker_id)
 
 

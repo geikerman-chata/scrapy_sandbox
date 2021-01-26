@@ -169,9 +169,11 @@ def split_reviews_locally(file, en_dict, other_dict):
                     lang_review, lang_response = get_languages(review)
                     short = is_short(review)
                     if lang_response == 'en' and lang_review == 'en' and response == 'Y' and not short:
-                        en_dict.update(review)
+                        data_packet = repack_data(full_dict, meta_key, review_key)
+                        en_dict.update(data_packet)
                     elif not short:
-                        other_dict.update(review)
+                        data_packet = repack_data(full_dict, meta_key, review_key)
+                        other_dict.update(data_packet)
                     else:
                         pass
     return en_dict, other_dict

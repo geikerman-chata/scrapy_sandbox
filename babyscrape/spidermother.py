@@ -16,6 +16,7 @@ from pathlib import Path
 from google.cloud import storage
 from split_output import split_file_into_buckets
 from split_output import split_reviews_locally
+import json
 
 def get_hotel_id(url):
     found = re.search(r'[g]\d{4,}[-][d]\d{5,}', url)
@@ -126,7 +127,9 @@ def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on =False)
                 #split_file_into_buckets(bucket, str(file))
                 en_dict, other_dict = split_reviews_locally(str(file), en_dict, other_dict)
                 os.remove(file)
-
+                print('/n')
+                print(en_dict)
+                print('/n')
                 if len(en_dict) >= 10:
                     sub_sub_dir = bucket_sub_dir + '/' + 'en_response'
                     file_name = name_this_file(bucket, sub_sub_dir, 'en_reviews_bot{}'.format(filenumber))

@@ -87,26 +87,27 @@ def name_this_file(bucket_name, sub_dir, prefix):
     return prefix + suffix
 
 
-def main(filenumber, start_spider_index, bucket_save, bucket):
-
+def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on =False):
     bucket_sub_dir = 'ta-hotel/compiled'
     iteration = 0
     spiderfeed = SpiderFeeder(filenumber=filenumber, start_idx=start_spider_index)
     proxies = FetchProxies(filenumber)
     en_dict = {}
     other_dict = {}
-    try:
-        proxies.fetch()
-    except FetchProxyFail:
-        raise FetchProxyFail('Proxy List could not be populated on init')
+    if proxies_on:
+        try:
+            proxies.fetch()
+        except FetchProxyFail:
+            raise FetchProxyFail('Proxy List could not be populated on init')
 
     while spiderfeed.continue_feed:
 
-        #if iteration % 150 == 0 and iteration != 0:
-        #    try:
-        #        proxies.fetch()
-        #    except FetchProxyFail:
-        #        pass
+        if proxies_on:
+            if iteration % 150 == 0 and iteration != 0:
+                try:
+                    proxies.fetch()
+                except FetchProxyFail:
+                    pass
 
         hotel_id = get_hotel_id(spiderfeed.current_url)
         if hotel_id:
@@ -116,22 +117,24 @@ def main(filenumber, start_spider_index, bucket_save, bucket):
             settings = get_project_settings()
             settings['FEED_URI'] = Path(file)
             settings['FEED_FORMAT'] = 'json'
-            #settings['ROTATING_PROXY_LIST_PATH'] = Path('proxies/proxies{}.txt'.format(filenumber))
+            if proxies_on:
+                settings['ROTATING_PROXY_LIST_PATH'] = Path('proxies/proxies{}.txt'.format(filenumber))
+
             if bucket_save:
                 run_spider(BabySpider, settings, spiderfeed.current_url)
                 #upload_blob(bucket, str(file), str(Path(bucket_sub_dir_raw + filename)))
-                split_file_into_buckets(bucket, str(file))
-                en_dict, other_dict = split_reviews_locally(file, en_dict, other_dict)
+                #split_file_into_buckets(bucket, str(file))
+                en_dict, other_dict = split_reviews_locally(str(file), en_dict, other_dict)
                 os.remove(file)
 
                 if len(en_dict) >= 500:
                     sub_sub_dir = bucket_sub_dir + '/' + 'en_response'
-                    file_name = name_this_file(bucket, sub_sub_dir, 'en_reviews')
+                    file_name = name_this_file(bucket, sub_sub_dir, 'en_reviews_bot{}'.format(filenumber))
                     upload_json_blob(bucket, en_dict, sub_sub_dir + '/' + file_name)
                     en_dict = {}
                 if len(other_dict) >= 500:
                     sub_sub_dir = bucket_sub_dir + '/' + 'other'
-                    file_name = name_this_file(bucket, sub_sub_dir, 'other_reviews')
+                    file_name = name_this_file(bucket, sub_sub_dir, 'other_reviews_bot{}'.format(filenumber))
                     upload_json_blob(bucket, other_dict, sub_sub_dir + file_name)
                     other_dict = {}
             else:

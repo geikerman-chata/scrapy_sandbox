@@ -91,9 +91,9 @@ def get_languages(review):
         lang_review = review['review_language']
     else:
         lang_review = None
-    if 'response_language' in review:
+    if 'response_language' in review.keys():
         lang_response = review['response_language']
-    elif review['review_response']:
+    elif 'review_response' in review.keys():
         lang_response = check_language(review['review_response'])
     else:
         lang_response = None
@@ -166,7 +166,9 @@ def split_reviews_locally(file, en_dict, other_dict):
             for review_key in full_dict:
                 response = review_key[0] #either 'Y' or 'N'
                 review = full_dict[review_key]
+                print('/n')
                 print(review)
+                print('/n')
                 lang_review, lang_response = get_languages(review)
                 short = is_short(review)
                 if lang_response == 'en' and lang_review == 'en' and response == 'Y' and not short:

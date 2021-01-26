@@ -126,15 +126,6 @@ def update_local_dict(bucket_name, save_dir, filename, new_json_list, limit, des
         fcntl.flock(locked_file, fcntl.LOCK_UN)
 
 
-#limit = 5* (10**8)
-
-def test_append(file_path, new_json):
-    with open(file_path, "a+") as locked_file:
-        json.dump(new_json, locked_file, indent=4)
-        for line_num, line in enumerate(locked_file):
-            pass
-    if line_num:
-        print(line_num)
 
 def zero_file(file_path):
     with open(file_path, "w") as locked_file:

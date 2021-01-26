@@ -142,24 +142,34 @@ def upload_file_as_blob(bucket_name, source_file_name, destination_blob_name):
         source_file_name,
         destination_blob_name))
 
+def check_contents(contents):
+    full_dict = None
+    if contents:
+        json_data = json.loads(contents)
+        if json_data:
+            full_dict = json_data[0]
+    return full_dict
+
 def split_reviews_locally(file, en_dict, other_dict):
-    full_dict = load_contents(file)
-    meta_key_list = [key for key in full_dict.keys() if key[0] == 'g']
-    if len(meta_key_list) != 1:
-        pass
-    else:
-        meta_key = meta_key_list[0]
-        for review_key in full_dict:
-            response = review_key[0] #either 'Y' or 'N'
-            review = full_dict[review_key]
-            lang_review, lang_response = get_languages(review)
-            short = is_short(review)
-            if lang_response == 'en' and lang_review == 'en' and response == 'Y' and not short:
-                en_dict.update(review)
-            elif not short:
-                other_dict.update(review)
-            else:
-                pass
+    contents = load_contents(file)
+    full_dict = check_contents(contents)
+    if full_dict:
+        meta_key_list = [key for key in full_dict.keys() if key[0] == 'g']
+        if len(meta_key_list) != 1:
+            pass
+        else:
+            meta_key = meta_key_list[0]
+            for review_key in full_dict:
+                response = review_key[0] #either 'Y' or 'N'
+                review = full_dict[review_key]
+                lang_review, lang_response = get_languages(review)
+                short = is_short(review)
+                if lang_response == 'en' and lang_review == 'en' and response == 'Y' and not short:
+                    en_dict.update(review)
+                elif not short:
+                    other_dict.update(review)
+                else:
+                    pass
     return en_dict, other_dict
 
 

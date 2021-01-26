@@ -117,7 +117,6 @@ def update_local_dict(bucket_name, save_dir, filename, new_json_list, limit, des
     file_size = print(file_info.st_size)
 
     if file_size >= limit:
-
         upload_file_as_blob(bucket_name, filename, destination_blob_name)
         zero_file(file_path)
 
@@ -165,18 +164,16 @@ def split_reviews_locally(file, en_dict, other_dict):
             meta_key = meta_key_list[0]
             for review_key in full_dict:
                 response = review_key[0] #either 'Y' or 'N'
-                review = full_dict[review_key]
-                print('/n')
-                print(review)
-                print('/n')
-                lang_review, lang_response = get_languages(review)
-                short = is_short(review)
-                if lang_response == 'en' and lang_review == 'en' and response == 'Y' and not short:
-                    en_dict.update(review)
-                elif not short:
-                    other_dict.update(review)
-                else:
-                    pass
+                if response == 'Y' or response == 'N':
+                    review = full_dict[review_key]
+                    lang_review, lang_response = get_languages(review)
+                    short = is_short(review)
+                    if lang_response == 'en' and lang_review == 'en' and response == 'Y' and not short:
+                        en_dict.update(review)
+                    elif not short:
+                        other_dict.update(review)
+                    else:
+                        pass
     return en_dict, other_dict
 
 

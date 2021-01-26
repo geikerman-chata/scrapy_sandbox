@@ -15,7 +15,7 @@ import argparse
 from pathlib import Path
 from google.cloud import storage
 from split_output import split_file_into_buckets
-
+from split_output import split_reviews_locally
 
 def get_hotel_id(url):
     found = re.search(r'[g]\d{4,}[-][d]\d{5,}', url)
@@ -57,22 +57,57 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
         source_file_name,
         destination_blob_name))
 
+def upload_json_blob(bucket_name, json_data, destination_blob_name):
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+    blob.upload_from_string(
+        data=json.dumps(json_data),
+        content_type='application/json'
+    )
+    print('File uploaded to {}.'.format(
+        destination_blob_name))
+
+def get_bucket_file_list(bucket_name, sub_dir):
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    return list(bucket.list_blobs(prefix=sub_dir))
+
+def name_this_file(bucket_name, sub_dir, prefix):
+    bucket_list = get_bucket_file_list(bucket_name, sub_dir)
+    prefix_files = [prefix_file for prefix_file in bucket_list if prefix in prefix_file]
+    if len(prefix_files) == 0:
+        suffix = '_0.json'
+    else:
+        regex = '(?<={}_).*?(?=.json)'.format(prefix)
+        file_numbers = [int(re.search(regex, prefix_file).group(0))
+                        for prefix_file in prefix_files if re.search(regex, prefix_file).group(0)]
+        current_max = max(file_numbers)
+        suffix = '_{}.json'.format(current_max+1)
+    return prefix + suffix
+
 
 def main(filenumber, start_spider_index, bucket_save, bucket):
+
+    bucket_sub_dir = 'ta-hotel/compiled'
     iteration = 0
     spiderfeed = SpiderFeeder(filenumber=filenumber, start_idx=start_spider_index)
     proxies = FetchProxies(filenumber)
+    en_dict = {}
+    other_dict = {}
     try:
         proxies.fetch()
     except FetchProxyFail:
         raise FetchProxyFail('Proxy List could not be populated on init')
 
     while spiderfeed.continue_feed:
-        if iteration % 150 == 0 and iteration != 0:
-            try:
-                proxies.fetch()
-            except FetchProxyFail:
-                pass
+
+        #if iteration % 150 == 0 and iteration != 0:
+        #    try:
+        #        proxies.fetch()
+        #    except FetchProxyFail:
+        #        pass
+
         hotel_id = get_hotel_id(spiderfeed.current_url)
         if hotel_id:
             filename = spiderfeed.zipfile_id + '-' + hotel_id + '.json'
@@ -83,11 +118,22 @@ def main(filenumber, start_spider_index, bucket_save, bucket):
             settings['FEED_FORMAT'] = 'json'
             #settings['ROTATING_PROXY_LIST_PATH'] = Path('proxies/proxies{}.txt'.format(filenumber))
             if bucket_save:
-                #bucket_sub_dir_raw = 'ta-crawler/raw-output-4/'
                 run_spider(BabySpider, settings, spiderfeed.current_url)
                 #upload_blob(bucket, str(file), str(Path(bucket_sub_dir_raw + filename)))
                 split_file_into_buckets(bucket, str(file))
+                en_dict, other_dict = split_reviews_locally(file, en_dict, other_dict)
                 os.remove(file)
+
+                if len(en_dict) >= 50000:
+                    sub_sub_dir = bucket_sub_dir + '/' + 'en_response'
+                    file_name = name_this_file(bucket, sub_sub_dir, 'en_reviews')
+                    upload_json_blob(bucket, en_dict, sub_sub_dir + '/' + file_name)
+                    en_dict = {}
+                if len(other_dict) >= 50000:
+                    sub_sub_dir = bucket_sub_dir + '/' + 'other'
+                    file_name = name_this_file(bucket, sub_sub_dir, 'other_reviews')
+                    upload_json_blob(bucket, other_dict, sub_sub_dir + file_name)
+                    other_dict = {}
             else:
                 run_spider(BabySpider, settings, spiderfeed.current_url)
         else:

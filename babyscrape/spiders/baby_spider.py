@@ -22,8 +22,8 @@ class BabySpider(scrapy.Spider):
     tic = time.time()
     is_response = False
     start_urls = [
-        "https://www.tripadvisor.ca/Hotel_Review-g807293-d15684719-Reviews-Villa_Valentine-Flachau_Austrian_Alps.html"
-        #"https://www.tripadvisor.ca/Hotel_Review-g212533-d777188-Reviews-Shamrock_Inn_Hotel-Lahinch_County_Clare.html"
+        #"https://www.tripadvisor.ca/Hotel_Review-g807293-d15684719-Reviews-Villa_Valentine-Flachau_Austrian_Alps.html"
+        "https://www.tripadvisor.ca/Hotel_Review-g212533-d777188-Reviews-Shamrock_Inn_Hotel-Lahinch_County_Clare.html"
         ]
 
     def parse(self, response):
@@ -111,7 +111,9 @@ class BabySpider(scrapy.Spider):
             'name_user': review_response.css('div._2fxQ4TOx *::text').extract()[0],
             'review_date': self.handle_review_date(review_response),
             'review_rating': self.bubble_breaker(bubble_rating),
-            'review_language': self.check_language(review_response),
+            'review_language': self.check_language('\n'.join(review_response.css('q.IRsGHoPm *::text').extract())),
+            'response_language': self.check_language(
+                handle_empty('\n'.join(review_response.css('span.sT5TMxg3 *::text').extract()))),
             'trip_type': review_response.css('span._2bVY3aT5::text').extract_first(),
             'helpful_votes': review_response.css('span._3kbymg8R._3kbymg8R::text').extract_first(),
             'reviewer_location': review_response.css('span._1TuWwpYf *::text').extract_first(),
@@ -123,10 +125,13 @@ class BabySpider(scrapy.Spider):
         }
         return review
 
-    def check_language(self, review_response):
-        try:
-            lang = detect('\n'.join(review_response.css('q.IRsGHoPm *::text').extract()))
-        except:
+    def check_language(self, text):
+        if text:
+            try:
+                lang = detect(text)
+            except:
+                lang = None
+        else:
             lang = None
         return lang
 
@@ -197,7 +202,12 @@ class BabySpider(scrapy.Spider):
 
     def handle_description(self, element):
         if element.extract():
-            return '\n'.join(element.extract())
+            extract_list = element.extract()
+            if extract_list[-1] == 'Read more':
+                description = extract_list[:-1]
+            else:
+                description = extract_list
+            return '\n'.join(description)
         else:
             return None
 

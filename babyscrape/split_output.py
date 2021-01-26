@@ -3,6 +3,9 @@ import json
 from google.cloud import storage
 import copy
 import time
+from langdetect import detect
+import fcntl
+import os
 
 def load_contents(file):
     with open(file, 'r') as open_file:
@@ -45,6 +48,7 @@ def save_split_review(bucket_name, bucket_sub_dir, full_dict, meta_key, review_k
             time.sleep(1)
             attempts += 1
 
+
 def split_reviews(bucket_name, full_dict, bucket_sub_dir_in):
     meta_key_list = [key for key in full_dict.keys() if key[0] == 'g']
     if len(meta_key_list) != 1:
@@ -72,6 +76,100 @@ def split_reviews(bucket_name, full_dict, bucket_sub_dir_in):
                 save_split_review(bucket_name, bucket_sub_dir, full_dict, meta_key, review_key)
             else:
                 pass
+
+def check_language(review):
+    try:
+        lang = detect(review)
+    except:
+        lang = None
+    return lang
+
+def get_languages(review):
+
+    if review['review_language']:
+        lang_review = review['review_language']
+    else:
+        lang_review = None
+    if 'response_language' in review:
+        lang_response = review['response_language']
+    elif review['review_response']:
+        lang_response = check_language(review['review_response'])
+    else:
+        lang_response = None
+
+    return lang_review, lang_response
+
+def is_short(review):
+    if len(review['review_text']) > 760 and review['review_text'][-1] == '…':
+        return True
+    else:
+        return False
+
+
+def update_local_dict(bucket_name, save_dir, filename, new_json_list, limit, destination_blob_name):
+    file_path = Path(save_dir + filename)
+    if not os.path.isfile(file_path):
+        zero_file(file_path)
+
+    file_info = os.stat(file_path)
+    file_size = print(file_info.st_size)
+
+    if file_size >= limit:
+
+        upload_file_as_blob(bucket_name, filename, destination_blob_name)
+        zero_file(file_path)
+
+    with open(file_path, "a+") as locked_file:
+        fcntl.flock(locked_file, fcntl.LOCK_EX)
+        for data_pack in new_json_list:
+            json.dump(data_pack, locked_file, indent=4)
+        fcntl.flock(locked_file, fcntl.LOCK_UN)
+
+
+#limit = 5* (10**8)
+
+def test_append(file_path, new_json):
+    with open(file_path, "a+") as locked_file:
+        json.dump(new_json, locked_file, indent=4)
+        for line_num, line in enumerate(locked_file):
+            pass
+    if line_num:
+        print(line_num)
+
+def zero_file(file_path):
+    with open(file_path, "w") as locked_file:
+        fcntl.flock(locked_file, fcntl.LOCK_EX)
+        json.dump({}, locked_file)
+        fcntl.flock(locked_file, fcntl.LOCK_UN)
+
+def upload_file_as_blob(bucket_name, source_file_name, destination_blob_name):
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+    blob.upload_from_filename(source_file_name)
+    print('File {} uploaded to {}.'.format(
+        source_file_name,
+        destination_blob_name))
+
+def split_reviews_locally(file, en_dict, other_dict):
+    full_dict = load_contents(file)
+    meta_key_list = [key for key in full_dict.keys() if key[0] == 'g']
+    if len(meta_key_list) != 1:
+        pass
+    else:
+        meta_key = meta_key_list[0]
+        for review_key in full_dict:
+            response = review_key[0] #either 'Y' or 'N'
+            review = full_dict[review_key]
+            lang_review, lang_response = get_languages(review)
+            short = is_short(review)
+            if lang_response == 'en' and lang_review == 'en' and response == 'Y' and not short:
+                en_dict.update(review)
+            elif not short:
+                other_dict.update(review)
+            else:
+                pass
+    return en_dict, other_dict
 
 
 def split_file_into_buckets(bucket_name, file, bucket_sub_dir='ta-hotel/'):

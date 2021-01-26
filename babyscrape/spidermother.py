@@ -127,15 +127,15 @@ def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
                 #split_file_into_buckets(bucket, str(file))
                 en_dict, other_dict = split_reviews_locally(str(file), en_dict, other_dict)
                 os.remove(file)
-                if len(en_dict) >= 50000 or iteration == 10:
+                if len(en_dict) >= 50000:
                     sub_sub_dir = bucket_sub_dir + '/' + 'en_response'
-                    file_name = name_this_file(bucket, sub_sub_dir, 'en_reviews_bot_test{}'.format(filenumber))
+                    file_name = name_this_file(bucket, sub_sub_dir, 'en_reviews_bot{}'.format(filenumber))
                     upload_json_blob(bucket, en_dict, sub_sub_dir + '/' + file_name)
                     en_dict = {}
-                if len(other_dict) >= 50000 or iteration == 10:
+                if len(other_dict) >= 50000:
                     sub_sub_dir = bucket_sub_dir + '/' + 'other'
-                    file_name = name_this_file(bucket, sub_sub_dir, 'other_reviews_bot_test{}'.format(filenumber))
-                    upload_json_blob(bucket, other_dict, sub_sub_dir +'/' + file_name)
+                    file_name = name_this_file(bucket, sub_sub_dir, 'other_reviews_bot{}'.format(filenumber))
+                    upload_json_blob(bucket, other_dict, sub_sub_dir + '/' + file_name)
                     other_dict = {}
             else:
                 run_spider(BabySpider, settings, spiderfeed.current_url)

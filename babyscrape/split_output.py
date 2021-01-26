@@ -77,6 +77,7 @@ def split_reviews(bucket_name, full_dict, bucket_sub_dir_in):
             else:
                 pass
 
+
 def check_language(review):
     try:
         lang = detect(review)
@@ -84,9 +85,9 @@ def check_language(review):
         lang = None
     return lang
 
-def get_languages(review):
 
-    if review['review_language']:
+def get_languages(review):
+    if 'review_language' in review.keys():
         lang_review = review['review_language']
     else:
         lang_review = None
@@ -98,6 +99,7 @@ def get_languages(review):
         lang_response = None
 
     return lang_review, lang_response
+
 
 def is_short(review):
     if len(review['review_text']) > 760 and review['review_text'][-1] == '…':
@@ -126,12 +128,12 @@ def update_local_dict(bucket_name, save_dir, filename, new_json_list, limit, des
         fcntl.flock(locked_file, fcntl.LOCK_UN)
 
 
-
 def zero_file(file_path):
     with open(file_path, "w") as locked_file:
         fcntl.flock(locked_file, fcntl.LOCK_EX)
         json.dump({}, locked_file)
         fcntl.flock(locked_file, fcntl.LOCK_UN)
+
 
 def upload_file_as_blob(bucket_name, source_file_name, destination_blob_name):
     storage_client = storage.Client()
@@ -142,6 +144,7 @@ def upload_file_as_blob(bucket_name, source_file_name, destination_blob_name):
         source_file_name,
         destination_blob_name))
 
+
 def check_contents(contents):
     full_dict = None
     if contents:
@@ -149,6 +152,7 @@ def check_contents(contents):
         if json_data:
             full_dict = json_data[0]
     return full_dict
+
 
 def split_reviews_locally(file, en_dict, other_dict):
     contents = load_contents(file)
@@ -162,6 +166,7 @@ def split_reviews_locally(file, en_dict, other_dict):
             for review_key in full_dict:
                 response = review_key[0] #either 'Y' or 'N'
                 review = full_dict[review_key]
+                print(review)
                 lang_review, lang_response = get_languages(review)
                 short = is_short(review)
                 if lang_response == 'en' and lang_review == 'en' and response == 'Y' and not short:

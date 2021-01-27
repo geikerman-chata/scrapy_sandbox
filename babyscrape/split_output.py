@@ -4,7 +4,6 @@ from google.cloud import storage
 import copy
 import time
 from langdetect import detect
-import fcntl
 import os
 
 def load_contents(file):
@@ -108,32 +107,6 @@ def is_short(review):
         return False
 
 
-def update_local_dict(bucket_name, save_dir, filename, new_json_list, limit, destination_blob_name):
-    file_path = Path(save_dir + filename)
-    if not os.path.isfile(file_path):
-        zero_file(file_path)
-
-    file_info = os.stat(file_path)
-    file_size = print(file_info.st_size)
-
-    if file_size >= limit:
-        upload_file_as_blob(bucket_name, filename, destination_blob_name)
-        zero_file(file_path)
-
-    with open(file_path, "a+") as locked_file:
-        fcntl.flock(locked_file, fcntl.LOCK_EX)
-        for data_pack in new_json_list:
-            json.dump(data_pack, locked_file, indent=4)
-        fcntl.flock(locked_file, fcntl.LOCK_UN)
-
-
-def zero_file(file_path):
-    with open(file_path, "w") as locked_file:
-        fcntl.flock(locked_file, fcntl.LOCK_EX)
-        json.dump({}, locked_file)
-        fcntl.flock(locked_file, fcntl.LOCK_UN)
-
-
 def upload_file_as_blob(bucket_name, source_file_name, destination_blob_name):
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
@@ -177,7 +150,7 @@ def split_reviews_locally(file, en_dict, other_dict):
                     else:
                         pass
         print('Full length of English review dictionary: ' + str(len(en_dict)))
-        print('Full length of other dictionary: ' + str(len(other_dict)))
+        print('Full length of Other dictionary: ' + str(len(other_dict)))
     return en_dict, other_dict
 
 

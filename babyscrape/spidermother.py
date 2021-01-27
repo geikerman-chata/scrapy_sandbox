@@ -18,6 +18,7 @@ from split_output import split_file_into_buckets
 from split_output import split_reviews_locally
 import json
 
+
 def get_hotel_id(url):
     found = re.search(r'[g]\d{4,}[-][d]\d{5,}', url)
     if found:
@@ -58,6 +59,7 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
         source_file_name,
         destination_blob_name))
 
+
 def upload_json_blob(bucket_name, json_data, destination_blob_name):
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(bucket_name)
@@ -69,10 +71,12 @@ def upload_json_blob(bucket_name, json_data, destination_blob_name):
     print('File uploaded to {}.'.format(
         destination_blob_name))
 
+
 def get_bucket_file_list(bucket_name, sub_dir):
     client = storage.Client()
     bucket = client.bucket(bucket_name)
     return list(bucket.list_blobs(prefix=sub_dir))
+
 
 def name_this_file(bucket_name, sub_dir, prefix):
     bucket_list = get_bucket_file_list(bucket_name, sub_dir)
@@ -126,19 +130,17 @@ def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
                 #upload_blob(bucket, str(file), str(Path(bucket_sub_dir_raw + filename)))
                 #split_file_into_buckets(bucket, str(file))
                 print('{} Before English length: {}'.format(str(filenumber), str(len(en_dict))))
-                print('{} Before English length: {}'.format(str(filenumber), str(len(other_dict))))
+                print('{} Before Other length: {}'.format(str(filenumber), str(len(other_dict))))
                 en_dict, other_dict = split_reviews_locally(str(file), en_dict, other_dict)
-                print('{} After English length: {}'.format(str(filenumber), str(len(en_dict))))
-                print('{} After English length: {}'.format(str(filenumber), str(len(other_dict))))
                 os.remove(file)
-                if len(en_dict) >= 500:
+                if len(en_dict) >= 50000:
                     sub_sub_dir = bucket_sub_dir + '/' + 'en_response'
-                    file_name = name_this_file(bucket, sub_sub_dir, 'en_reviews_bot_test{}'.format(filenumber))
+                    file_name = name_this_file(bucket, sub_sub_dir, 'en_reviews_bot_{}'.format(filenumber))
                     upload_json_blob(bucket, en_dict, sub_sub_dir + '/' + file_name)
                     en_dict = {}
-                if len(other_dict) >= 500:
+                if len(other_dict) >= 50000:
                     sub_sub_dir = bucket_sub_dir + '/' + 'other'
-                    file_name = name_this_file(bucket, sub_sub_dir, 'other_reviews_bot_test{}'.format(filenumber))
+                    file_name = name_this_file(bucket, sub_sub_dir, 'other_reviews_bot_{}'.format(filenumber))
                     upload_json_blob(bucket, other_dict, sub_sub_dir + '/' + file_name)
                     other_dict = {}
             else:
@@ -148,6 +150,7 @@ def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
         spiderfeed.next_url()
         iteration += 1
 
+
 def silent_remove(filename):
     try:
         os.remove(filename)
@@ -155,10 +158,14 @@ def silent_remove(filename):
         if e.errno != errno.ENOENT:
             raise
 
+
 class InvalidArgument(Exception):
     pass
+
+
 class FetchProxyFail(Exception):
     pass
+
 
 if __name__ == "__main__":
     sys.path.insert(0, './spiders')

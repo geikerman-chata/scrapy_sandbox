@@ -98,7 +98,7 @@ The marker.txt files are competency substitutes for a real queue or stack, which
  ```python            
 data_rollup.py & complile.py:
 ```
-Tools to "roll-up" individual review files in google buckets into larger json files. 
+Tools to "roll-up" individual review files stored in google buckets into larger json files. 
 
 
 

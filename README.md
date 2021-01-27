@@ -71,8 +71,8 @@ Lower inclusive bound of the xml file number to use as input for the spider. Mus
 
 ## More info
 
-A google cloud platform virtual machine with (16 vcpu + 16GB ram) is comfortable running 8 spiders at once (like the command spider_control.py -s 0 -f 8 - i 1000). 
-This setup will produce, on average, 5,000 English reviews with responses per hour.
+A google cloud platform virtual machine (16 vcpu + 16GB ram) is comfortable running 8 spiders at once (like the command spider_control.py -s 0 -f 8 - i 1000). 
+This setup + command will produce, on average, 5,000 English reviews with responses per hour.
 
 There is a problem with running more than 8 spiders on a virtual machine however, and it seems to be related to a clash between networking / bucket access and multiprocessing.
 The processes don't crash, but output is very slow. Network throughput halves from ~2 MiB/sec to ~1 MiB/sec and the amount of data coming out of the spiders is drastically reduced.

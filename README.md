@@ -6,8 +6,10 @@ WARNING: The code is usable, albeit wobbly. There are many nice-to-haves to stil
 
 ## Initialization
 
-Unfortunately there is some heavy lifting to be done here: 
-Clone this repo to a linux machine (most testing done on Debian 10) ensure the local repo holds the scrapy.cfg (scrapy config file) 
+Clone this repo to a linux machine (most testing done on Debian 10) ensure the local repo holds the scrapy.cfg (scrapy config file).
+```bash 
+git clone https://github.com/geikerman-chata/scrapy_sandbox
+```
 
 The following bash commands will install wget, chrome, chromdriver and other programs to support chromedriver running smoothly (jdk & jre):
 ```bash 
@@ -36,6 +38,13 @@ To run one spider for example:
 ```bash
 $ python3 spidermother.py -f 0 -s 0 -b 0
 ```
+
+NOTE: The spider's print a lot of output for debugging purposes. It's recommended that you wrap spider run commands with nohup to run in background and store the command line output store to file, like this:
+
+```bash
+$ nohup python3 spidermother.py -f 0 -s 0 -b 0 &> cmdline.out &
+```
+
 This command run 1 spider using xml file 0 (of 35) as input. The spider will keep running until all urls in the specified xml have been visited. 
 
 The inputs here are a bit cryptic: 

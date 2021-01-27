@@ -91,12 +91,12 @@ The processes don't crash, but output is very slow. Network throughput halves fr
 
 There are other programs in the repo that are usesful diagnostic tools or were used to "encourage" program to change its output format. 
 ```python
-monitor.py :
+monitor.py 
 ```
 Very simple diagnostic tool for reading the marker.txt files in the xml input folder to try and guage overall progress. And doesn't work very well.
 The marker.txt files are competency substitutes for a real queue or stack, which would orchestrate input urls for multiple spiders (for multiprocessing)
  ```python            
-data_rollup.py & complile.py:
+data_rollup.py & complile.py
 ```
 Tools to "roll-up" individual review files stored in google buckets into larger json files. 
 

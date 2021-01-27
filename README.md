@@ -2,7 +2,7 @@
 
 Collection of python scripts to scrape TripAdvisor by leveraging their robot.txt sitemap. 
 
-WARNING: The code is usable, albeit wobbly. There are many nice-to-haves to still implement, efficiencies to gain and silly multi-processing work-arounds that need mending.    
+WARNING: The code is usable, albeit wobbly. There are many nice-to-haves to still implement, efficiencies to gain and silly multi-processing work-arounds that this repo is begging for.    
 
 ## Initialization
 
@@ -71,13 +71,15 @@ Lower inclusive bound of the xml file number to use as input for the spider. Mus
 
 ## More info
 
-A google cloud platform virtual machine (16 vcpu + 16GB ram) is comfortable running 8 spiders at once (like the command spider_control.py -s 0 -f 8 - i 1000). 
-This setup + command will produce, on average, 5,000 English reviews with responses per hour.
+A google cloud platform virtual machine (16 vcpu + 16GB ram) is comfortable running 8 spiders at once, like the following command:
+```bash spider_control.py -s 0 -f 8 - i 1000``` 
+
+This setup + command will produce an average of 5,000 English reviews (with english responses) per hour from one vm.
 
 There is a problem with running more than 8 spiders on a virtual machine however, and it seems to be related to a clash between networking / bucket access and multiprocessing.
-The processes don't crash, but output is very slow. Network throughput halves from ~2 MiB/sec to ~1 MiB/sec and the amount of data coming out of the spiders is drastically reduced.
+The processes don't crash, but output is very slow. Network throughput halves from ~2 MiB/sec to ~1 MiB/sec and the data output from the spiders is drastically reduced.
 
-There are other programs in the repo that are usesful for diagnostic tools or where used to "shoehorn" the program to do something a little different. 
+There are other programs in the repo that are usesful diagnostic tools or were used to "encourage" program to change its output format. 
 
 monitor.py :
 

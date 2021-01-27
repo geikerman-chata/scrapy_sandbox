@@ -39,7 +39,7 @@ To run one spider for example:
 $ python3 spidermother.py -f 0 -s 0 -b 0
 ```
 
-NOTE: The spider's print a lot of output for debugging purposes. It's recommended that you wrap spider run commands with nohup to run in background and store the command line output store to file, like this:
+NOTE: The spider's print a lot of output for debugging purposes. It's recommended that you wrap the commands to run a spider or series of spiders with nohup & which will force it to run in background (you will be able to close the vm ssh, and it will still be running) and store the command line output to a file, like this:
 
 ```bash
 $ nohup python3 spidermother.py -f 0 -s 0 -b 0 &> cmdline.out &

@@ -34,7 +34,7 @@ $ python3 download_hotel_xml.py
 ```
 To run one spider for example:
 ```bash
-$python3 spidermother.py -f 0 -s 0 -b 0
+$ python3 spidermother.py -f 0 -s 0 -b 0
 ```
 This command run 1 spider using xml file 0 (of 35) as input. The spider will keep running until all urls in the specified xml have been visited. 
 
@@ -53,7 +53,7 @@ Hope you have plenty of hard-drive space in your local repo.
 
 To run multiple spiders in parallel, for example
 ```bash
-$python3 spider_control.py -s 0 -f 8 - i 1000
+$ python3 spider_control.py -s 0 -f 8 - i 1000
 ```
 This will run 8 spiders in parallel. Their input date comes from xml files 0-7 (8 is the non-inclusive upper bound) and start at url index 1000 (out of 50,000 in the xml files)
 
@@ -79,10 +79,14 @@ The processes don't crash, but output is very slow. Network throughput halves fr
 
 There are other programs in the repo that are usesful for diagnostic tools or where used to "shoehorn" the program to do something a little different. 
 
-monitor.py  - Very simple diagnostic tool for reading the marker.txt files in the xml input folder to try and guage overall progress. And doesn't work very well.
-              The marker.txt files are competency substitutes for a real queue or stack, which would orchestrate input urls for multiple spiders (for multiprocessing)
+monitor.py :
+
+Very simple diagnostic tool for reading the marker.txt files in the xml input folder to try and guage overall progress. And doesn't work very well.
+The marker.txt files are competency substitutes for a real queue or stack, which would orchestrate input urls for multiple spiders (for multiprocessing)
               
-data_rollup.py / complile.py - Tools to "roll-up" individual review files in google buckets into larger json files. 
+data_rollup.py / complile.py:
+
+Tools to "roll-up" individual review files in google buckets into larger json files. 
 
 
 

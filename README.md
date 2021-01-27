@@ -26,7 +26,7 @@ In the working directory install the requirements using pip:
 $ pip install requirements.txt -r
 ```
 
-## Quick Start Usage
+## Quick Start
 
 To download the trip advisor sitemap xmls and initialized the input folder run:
 ```bash

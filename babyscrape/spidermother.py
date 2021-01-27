@@ -92,39 +92,61 @@ def name_this_file(bucket_name, sub_dir, prefix):
     return prefix + suffix
 
 
+def config_settings(spiderfeed, hotel_id, filenumber, proxies_on):
+    filename = spiderfeed.zipfile_id + '-' + hotel_id + '.json'
+    file = Path('output/' + filename)
+    silent_remove(file)
+    settings = get_project_settings()
+    settings['FEED_URI'] = Path(file)
+    settings['FEED_FORMAT'] = 'json'
+    if proxies_on:
+        settings['ROTATING_PROXY_LIST_PATH'] = Path('proxies/proxies{}.txt'.format(filenumber))
+    return settings, file
+
+
+def refresh_proxies(filenumber, proxies_on, iteration, iteration_frequency):
+    if proxies_on:
+        proxies = FetchProxies(filenumber)
+        if iteration % 150 == 0 or iteration == 0:
+            try:
+                proxies.fetch()
+            except FetchProxyFail:
+                pass
+
+
+def get_egg_name(local_path, prefix):
+    path_dir_list = os.listdir(local_path)
+    prefix_files = [prefix_file for prefix_file in path_dir_list if prefix in prefix_file]
+    if len(prefix_files) == 0:
+        suffix = '_0.json'
+    else:
+        regex = '(?<={}_).*?(?=.json)'.format(prefix)
+        file_numbers = [int(re.search(regex, prefix_file).group(0))
+                        for prefix_file in prefix_files if re.search(regex, prefix_file).group(0)]
+        current_max = max(file_numbers)
+        suffix = '_{}.json'.format(current_max + 1)
+    return prefix + suffix
+
+
+def dump_local_spider_egg(file_name, sub_dir_name, filenumber, json_data):
+    local_path = 'output/' + sub_dir_name + '/'
+    prefix = str(filenumber) + '_' + file_name
+    filename = get_egg_name(local_path, prefix)
+    with open(Path(local_path + filename), 'w') as save_file:
+        save_file.write(json.dumps(json_data))
+
+
 def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
     bucket_sub_dir = 'ta-hotel/compiled'
-    iteration = 0
     spiderfeed = SpiderFeeder(filenumber=filenumber, start_idx=start_spider_index)
-    proxies = FetchProxies(filenumber)
+    iteration = 0
     en_dict = {}
     other_dict = {}
-    if proxies_on:
-        try:
-            proxies.fetch()
-        except FetchProxyFail:
-            raise FetchProxyFail('Proxy List could not be populated on init')
-
-    while spiderfeed.continue_feed :
-
-        if proxies_on:
-            if iteration % 150 == 0 and iteration != 0:
-                try:
-                    proxies.fetch()
-                except FetchProxyFail:
-                    pass
-
+    while spiderfeed.continue_feed:
+        refresh_proxies(filenumber, proxies_on, iteration, 150)
         hotel_id = get_hotel_id(spiderfeed.current_url)
         if hotel_id:
-            filename = spiderfeed.zipfile_id + '-' + hotel_id + '.json'
-            file = Path('output/' + filename)
-            silent_remove(file)
-            settings = get_project_settings()
-            settings['FEED_URI'] = Path(file)
-            settings['FEED_FORMAT'] = 'json'
-            if proxies_on:
-                settings['ROTATING_PROXY_LIST_PATH'] = Path('proxies/proxies{}.txt'.format(filenumber))
-
+            settings, file = config_settings(spiderfeed, hotel_id, filenumber, proxies_on)
             if bucket_save:
                 run_spider(BabySpider, settings, spiderfeed.current_url)
                 #upload_blob(bucket, str(file), str(Path(bucket_sub_dir_raw + filename)))
@@ -133,6 +155,15 @@ def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
                 print('{} Before Other length: {}'.format(str(filenumber), str(len(other_dict))))
                 en_dict, other_dict = split_reviews_locally(str(file), en_dict, other_dict)
                 os.remove(file)
+
+                if len(en_dict) >= 10:
+                    dump_local_spider_egg('en_reviews_egg', filenumber, 'english_reviews', en_dict)
+                    #check_number_spider_eggs()
+                    #if spider_eggs >= 100:
+                    #    collect_spider_eggs()
+                    #    upload_spider_egg_group()
+                    #    delete_spider_eggs()
+
                 if len(en_dict) >= 50000:
                     sub_sub_dir = bucket_sub_dir + '/' + 'en_response'
                     file_name = name_this_file(bucket, sub_sub_dir, 'en_reviews_bot_{}'.format(filenumber))

@@ -17,6 +17,16 @@ from google.cloud import storage
 from split_output import split_file_into_buckets
 from split_output import split_reviews_locally
 import json
+sys.path.insert(0, './spiders')
+from baby_spider import BabySpider
+
+
+class InvalidArgument(Exception):
+    pass
+
+
+class FetchProxyFail(Exception):
+    pass
 
 
 def get_hotel_id(url):
@@ -114,6 +124,14 @@ def refresh_proxies(filenumber, proxies_on, iteration, iteration_frequency):
                 pass
 
 
+def silent_remove(filename):
+    try:
+        os.remove(filename)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            raise
+
+
 def get_egg_name(local_path, prefix):
     path_dir_list = os.listdir(local_path)
     prefix_files = [prefix_file for prefix_file in path_dir_list if prefix in prefix_file]
@@ -161,8 +179,18 @@ def collect_spider_eggs(match_str, sub_dir_name):
     for file in file_list:
         with open(Path(local_path + file), 'r') as open_file:
             data = json.loads(open_file.read())
+
         collection.update(data)
+        silent_remove(Path(local_path + file))
     return collection
+
+#filenumber = 9
+#start_spider_index = 0
+#bucket_save = True
+#bucket = 'nlp_resources'
+#proxies_on =False
+
+
 
 
 def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
@@ -186,25 +214,34 @@ def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
                 os.remove(file)
 
                 if len(en_dict) >= 10:
-
                     drop_local_spider_egg('en_reviews_egg', 'english_reviews', filenumber, en_dict)
                     en_dict = {}
-                    check_number_spider_eggs('en_reviews_egg', 'english_reviews')
-                    #if spider_eggs >= 100:
-                    #    collect_spider_eggs()
-                    #    upload_spider_egg_group()
-                    #    delete_spider_eggs()
-
-                if len(en_dict) >= 50000:
-                    sub_sub_dir = bucket_sub_dir + '/' + 'en_response'
-                    file_name = name_this_file(bucket, sub_sub_dir, 'en_reviews_bot_{}'.format(filenumber))
-                    upload_json_blob(bucket, en_dict, sub_sub_dir + '/' + file_name)
+                    num_spider_eggs = check_number_spider_eggs('en_reviews_egg', 'english_reviews')
+                    if num_spider_eggs >= 10:
+                        sub_sub_dir = bucket_sub_dir + '/' + 'en_response'
+                        spider_eggs = collect_spider_eggs('en_reviews_egg', 'english_reviews')
+                        collection_name = name_this_file(bucket, sub_sub_dir, 'en_reviews_bot_test{}'.format(filenumber))
+                        upload_json_blob(bucket, spider_eggs, sub_sub_dir + '/' + collection_name)
+                if len(en_dict) >= 10:
+                    drop_local_spider_egg('other_egg', 'other_reviews', filenumber, en_dict)
                     en_dict = {}
-                if len(other_dict) >= 50000:
-                    sub_sub_dir = bucket_sub_dir + '/' + 'other'
-                    file_name = name_this_file(bucket, sub_sub_dir, 'other_reviews_bot_{}'.format(filenumber))
-                    upload_json_blob(bucket, other_dict, sub_sub_dir + '/' + file_name)
-                    other_dict = {}
+                    num_spider_eggs = check_number_spider_eggs('other_egg', 'other_reviews')
+                    if num_spider_eggs >= 10:
+                        sub_sub_dir = bucket_sub_dir + '/' + 'other'
+                        spider_eggs = collect_spider_eggs('other_egg', 'other_reviews')
+                        collection_name = name_this_file(bucket, sub_sub_dir, 'other_reviews_bot_test{}'.format(filenumber))
+                        upload_json_blob(bucket, spider_eggs, sub_sub_dir + '/' + collection_name)
+
+ #               if len(en_dict) >= 50000:
+ #                   sub_sub_dir = bucket_sub_dir + '/' + 'en_response'
+ #                   file_name = name_this_file(bucket, sub_sub_dir, 'en_reviews_bot_{}'.format(filenumber))
+ #                   upload_json_blob(bucket, en_dict, sub_sub_dir + '/' + file_name)
+ #                   en_dict = {}
+ #               if len(other_dict) >= 50000:
+ #                   sub_sub_dir = bucket_sub_dir + '/' + 'other'
+ #                   file_name = name_this_file(bucket, sub_sub_dir, 'other_reviews_bot_{}'.format(filenumber))
+ #                   upload_json_blob(bucket, other_dict, sub_sub_dir + '/' + file_name)
+ #                   other_dict = {}
             else:
                 run_spider(BabySpider, settings, spiderfeed.current_url)
         else:
@@ -213,25 +250,10 @@ def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
         iteration += 1
 
 
-def silent_remove(filename):
-    try:
-        os.remove(filename)
-    except OSError as e:
-        if e.errno != errno.ENOENT:
-            raise
-
-
-class InvalidArgument(Exception):
-    pass
-
-
-class FetchProxyFail(Exception):
-    pass
 
 
 if __name__ == "__main__":
-    sys.path.insert(0, './spiders')
-    from baby_spider import BabySpider
+
     bucket = 'nlp_resources'
     parser = argparse.ArgumentParser()
     parser.add_argument("--filenumber", "-f", help="File number index of the file in the input directory to run "

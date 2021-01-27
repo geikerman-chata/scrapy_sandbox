@@ -125,11 +125,11 @@ def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
                 run_spider(BabySpider, settings, spiderfeed.current_url)
                 #upload_blob(bucket, str(file), str(Path(bucket_sub_dir_raw + filename)))
                 #split_file_into_buckets(bucket, str(file))
-                print(filenumber + ' Before English length: ' + len(en_dict))
-                print(filenumber + ' Before Other length: ' + len(en_dict))
+                print('{} Before English length: {}'.format(str(filenumber), str(len(en_dict))))
+                print('{} Before English length: {}'.format(str(filenumber), str(len(other_dict))))
                 en_dict, other_dict = split_reviews_locally(str(file), en_dict, other_dict)
-                print(filenumber + ' After English length: ' + len(en_dict))
-                print(filenumber + ' After Other length: ' + len(en_dict))
+                print('{} After English length: {}'.format(str(filenumber), str(len(en_dict))))
+                print('{} After English length: {}'.format(str(filenumber), str(len(other_dict))))
                 os.remove(file)
                 if len(en_dict) >= 500:
                     sub_sub_dir = bucket_sub_dir + '/' + 'en_response'

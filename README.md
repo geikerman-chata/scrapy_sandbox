@@ -60,11 +60,11 @@ WARNING:
  If -b is left out as a parameter, the output is saved locally in "cwd"/output. 
 Hope you have plenty of hard-drive space in your local repo. 
 
-To run multiple spiders in parallel, for example
+To run multiple spiders in parallel:
 ```bash
 $ python3 spider_control.py -s 0 -f 8 - i 1000
 ```
-This will run 8 spiders in parallel. Their input date comes from xml files 0-7 (8 is the non-inclusive upper bound) and start at url index 1000 (out of 50,000 in the xml files)
+The above command would run 8 spiders in parallel. Their input date is sourced from xml files 0-7 (8 is the non-inclusive upper bound) and start at url index 1000 (out of 50,000 in the xml files)
 
 Again the arguments are cryptic and a little inconsistent with spidermother.py:
 

@@ -86,8 +86,8 @@ spider_control.py -s 0 -f 8 -i 1000
 ``` 
 This setup + command will produce an average of 5,000 English reviews (with english responses) per hour from one vm.
 
-There is a problem with running more than 8 spiders on a virtual machine however, and it seems to be related to a clash between networking / bucket access and multiprocessing.
-The processes don't crash, but output is very slow. Network throughput halves from ~2 MiB/sec to ~1 MiB/sec and the data output from the spiders is drastically reduced.
+There is a problem with running more than 8 spiders on a virtual machine. This issue seems to be related to a clash between networking / bucket access and multiprocessing.
+The spiders don't crash when too many spider processes are running, but output their data very slowly. Network throughput halves from ~2 MiB/sec to ~1 MiB/sec and the data output from the spiders is drastically reduced to a small trickle.
 
 There are other programs in the repo that are usesful diagnostic tools or were used to "encourage" program to change its output format. 
 ```python

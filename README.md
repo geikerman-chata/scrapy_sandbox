@@ -62,7 +62,7 @@ Hope you have plenty of hard-drive space in your local repo.
 
 To run multiple spiders in parallel:
 ```bash
-$ python3 spider_control.py -s 0 -f 8 - i 1000
+$ python3 spider_control.py -s 0 -f 8 -i 1000
 ```
 The above command would run 8 spiders in parallel. Their input date is sourced from xml files 0-7 (8 is the non-inclusive upper bound) and start at url index 1000 (out of 50,000 in the xml files)
 
@@ -82,7 +82,7 @@ Lower inclusive bound of the xml file number to use as input for the spider. Mus
 
 A google cloud platform virtual machine (16 vcpu + 16GB ram) is comfortable running 8 spiders at once, like the following command:
 ```bash 
-spider_control.py -s 0 -f 8 - i 1000
+spider_control.py -s 0 -f 8 -i 1000
 ``` 
 This setup + command will produce an average of 5,000 English reviews (with english responses) per hour from one vm.
 

@@ -176,8 +176,8 @@ def split_reviews_locally(file, en_dict, other_dict):
                         other_dict.update(data_packet)
                     else:
                         pass
-        print('Length of English review dictionary: ' + len(en_dict))
-        print('Length of other dictionary: ' + len(other_dict))
+        print('Full length of English review dictionary: ' + str(len(en_dict)))
+        print('Full length of other dictionary: ' + str(len(other_dict)))
     return en_dict, other_dict
 
 

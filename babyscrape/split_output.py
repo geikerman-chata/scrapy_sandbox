@@ -136,7 +136,7 @@ def split_reviews_locally(file, en_dict, other_dict):
         else:
             meta_key = meta_key_list[0]
             for review_key in full_dict:
-                response = review_key[0] #either 'Y' or 'N'
+                response = review_key[0]
                 if response == 'Y' or response == 'N':
                     review = full_dict[review_key]
                     lang_review, lang_response = get_languages(review)
@@ -149,8 +149,8 @@ def split_reviews_locally(file, en_dict, other_dict):
                         other_dict.update(data_packet)
                     else:
                         pass
-        print('Full length of English review dictionary: ' + str(len(en_dict)))
-        print('Full length of Other dictionary: ' + str(len(other_dict)))
+        print('After length of English review dictionary: ' + str(len(en_dict)))
+        print('After length of Other review dictionary: '+ str(len(other_dict)))
     return en_dict, other_dict
 
 

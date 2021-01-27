@@ -179,7 +179,6 @@ def collect_spider_eggs(match_str, sub_dir_name):
     for file in file_list:
         with open(Path(local_path + file), 'r') as open_file:
             data = json.loads(open_file.read())
-
         collection.update(data)
         silent_remove(Path(local_path + file))
     return collection
@@ -201,8 +200,7 @@ def spider_egg_handler(filenumber, egg_dict, egg_name, egg_save_folder,
 
         if num_spider_eggs >= eggs_per_collection:
             spider_eggs = collect_spider_eggs(egg_name, egg_save_folder)
-            collection_name = name_this_file(bucket, google_bucket_save_dir, '{}_bot_test{}'.format(egg_save_folder,
-                                                                                                    filenumber))
+            collection_name = name_this_file(bucket, google_bucket_save_dir, '{}_bot'.format(egg_save_folder))
             upload_json_blob(bucket, spider_eggs, google_bucket_save_dir + '/' + collection_name)
     return egg_dict
 
@@ -220,8 +218,6 @@ def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
             settings, file = config_settings(spiderfeed, hotel_id, filenumber, proxies_on)
             if bucket_save:
                 run_spider(BabySpider, settings, spiderfeed.current_url)
-                #upload_blob(bucket, str(file), str(Path(bucket_sub_dir_raw + filename)))
-                #split_file_into_buckets(bucket, str(file))
                 print('{} Before English length: {}'.format(str(filenumber), str(len(en_dict))))
                 print('{} Before Other length: {}'.format(str(filenumber), str(len(other_dict))))
                 en_dict, other_dict = split_reviews_locally(str(file), en_dict, other_dict)
@@ -229,39 +225,9 @@ def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
                 en_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'en_response'
                 other_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'other'
                 en_dict = spider_egg_handler(filenumber, en_dict, 'en_reviews_egg',
-                                             'english_reviews', 10, 10, en_gcp_bucket_save_dir)
+                                             'english_reviews', 1000, 100, en_gcp_bucket_save_dir)
                 other_dict = spider_egg_handler(filenumber, other_dict, 'other_reviews_egg',
-                                             'other_reviews', 10, 10, other_gcp_bucket_save_dir)
-
-#                if len(en_dict) >= 10:
-#                    drop_local_spider_egg('en_reviews_egg', 'english_reviews', filenumber, en_dict)
-#                    en_dict = {}
-#                    num_spider_eggs = check_number_spider_eggs('en_reviews_egg', 'english_reviews')
-#                    if num_spider_eggs >= 10:
-#                        sub_sub_dir = bucket_sub_dir + '/' + 'en_response'
-#                        spider_eggs = collect_spider_eggs('en_reviews_egg', 'english_reviews')
-#                        collection_name = name_this_file(bucket, sub_sub_dir, 'en_reviews_bot_test{}'.format(filenumber))
-#                        upload_json_blob(bucket, spider_eggs, sub_sub_dir + '/' + collection_name)
-#                if len(en_dict) >= 10:
-#                    drop_local_spider_egg('other_egg', 'other_reviews', filenumber, en_dict)
-#                    en_dict = {}
-#                    num_spider_eggs = check_number_spider_eggs('other_egg', 'other_reviews')
-#                    if num_spider_eggs >= 10:
-#                        sub_sub_dir = bucket_sub_dir + '/' + 'other'
-#                        spider_eggs = collect_spider_eggs('other_egg', 'other_reviews')
-#                        collection_name = name_this_file(bucket, sub_sub_dir, 'other_reviews_bot_test{}'.format(filenumber))
-#                        upload_json_blob(bucket, spider_eggs, sub_sub_dir + '/' + collection_name)
-
- #               if len(en_dict) >= 50000:
- #                  sub_sub_dir = bucket_sub_dir + '/' + 'en_response'
- #                  file_name = name_this_file(bucket, sub_sub_dir, 'en_reviews_bot_{}'.format(filenumber))
- #                  upload_json_blob(bucket, en_dict, sub_sub_dir + '/' + file_name)
- #                  en_dict = {}
- #               if len(other_dict) >= 50000:
- #                  sub_sub_dir = bucket_sub_dir + '/' + 'other'
- #                  file_name = name_this_file(bucket, sub_sub_dir, 'other_reviews_bot_{}'.format(filenumber))
- #                  upload_json_blob(bucket, other_dict, sub_sub_dir + '/' + file_name)
- #                  other_dict = {}
+                                                'other_reviews', 1000, 100, other_gcp_bucket_save_dir)
             else:
                 run_spider(BabySpider, settings, spiderfeed.current_url)
         else:

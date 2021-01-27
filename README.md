@@ -2,7 +2,7 @@
 
 Collection of python scripts to scrape TripAdvisor by leveraging their robot.txt sitemap. 
 
-WARNING: The code is usable, albeit wobbly. There are many nice-to-haves to still implement, efficiencies to gain and silly multi-processing work-arounds that this repo is begging for.    
+WARNING: The code is usable, albeit a bit wobbly. There are many nice-to-haves to implement, efficiencies to gain and silly multi-processing work-arounds that this repo is still begging for.    
 
 ## Initialization
 
@@ -75,7 +75,7 @@ Lower inclusive bound of the xml file number to use as input for the spider. Mus
 
 -i [0 - 49999] Index in all of active input xmls (-s [int] to -f [int]) where the spiders will start. 
 
--n [any int] Only include if you want files saved on the local machine instead of the google cloud bucket. 
+-n [any int] Only include if you want individual output files to be saved on the local machine (/output folder)instead of a google cloud bucket. 
 
 
 ## More info

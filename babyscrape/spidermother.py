@@ -158,6 +158,7 @@ def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
 
                 if len(en_dict) >= 10:
                     dump_local_spider_egg('en_reviews_egg', filenumber, 'english_reviews', en_dict)
+                    en_dict = {}
                     #check_number_spider_eggs()
                     #if spider_eggs >= 100:
                     #    collect_spider_eggs()

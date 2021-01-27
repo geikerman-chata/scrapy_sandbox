@@ -81,22 +81,23 @@ Lower inclusive bound of the xml file number to use as input for the spider. Mus
 ## More info
 
 A google cloud platform virtual machine (16 vcpu + 16GB ram) is comfortable running 8 spiders at once, like the following command:
-```bash spider_control.py -s 0 -f 8 - i 1000``` 
-
+```bash 
+spider_control.py -s 0 -f 8 - i 1000
+``` 
 This setup + command will produce an average of 5,000 English reviews (with english responses) per hour from one vm.
 
 There is a problem with running more than 8 spiders on a virtual machine however, and it seems to be related to a clash between networking / bucket access and multiprocessing.
 The processes don't crash, but output is very slow. Network throughput halves from ~2 MiB/sec to ~1 MiB/sec and the data output from the spiders is drastically reduced.
 
 There are other programs in the repo that are usesful diagnostic tools or were used to "encourage" program to change its output format. 
-
+```python
 monitor.py :
-
+```
 Very simple diagnostic tool for reading the marker.txt files in the xml input folder to try and guage overall progress. And doesn't work very well.
 The marker.txt files are competency substitutes for a real queue or stack, which would orchestrate input urls for multiple spiders (for multiprocessing)
-              
-data_rollup.py / complile.py:
-
+ ```python            
+data_rollup.py & complile.py:
+```
 Tools to "roll-up" individual review files in google buckets into larger json files. 
 
 

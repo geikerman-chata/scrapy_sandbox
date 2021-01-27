@@ -2,7 +2,7 @@
 
 Collection of python scripts to scrape TripAdvisor by leveraging their robot.txt sitemap. 
 
-WARNING: The code is usable, albeit a bit wobbly. There are many nice-to-haves to implement, efficiencies to gain and silly multi-processing work-arounds that this repo is still begging for.    
+WARNING: The code is usable, albeit a bit wobbly. There are many: nice-to-haves to implement, efficiencies to gain, and silly multi-processing work-arounds this repo is still begging for.    
 
 ## Initialization
 

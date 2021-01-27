@@ -128,12 +128,41 @@ def get_egg_name(local_path, prefix):
     return prefix + suffix
 
 
-def dump_local_spider_egg(file_name, sub_dir_name, filenumber, json_data):
+def drop_local_spider_egg(file_name, sub_dir_name, filenumber, json_data):
     local_path = 'output/' + sub_dir_name + '/'
+    cwd = os.getcwd()
+    if not does_dir_exist(os.path.join(cwd, local_path)):
+        os.mkdir(os.path.join(cwd, local_path))
     prefix = str(filenumber) + '_' + file_name
     filename = get_egg_name(local_path, prefix)
     with open(Path(local_path + filename), 'w') as save_file:
+        print('Dropping Egg: '.format(filename))
         save_file.write(json.dumps(json_data))
+
+
+def does_dir_exist(path):
+    return os.path.isdir(os.path.join(path))
+
+
+def check_number_spider_eggs(match_str, sub_dir_name, option=None):
+    local_path = 'output/' + sub_dir_name + '/'
+    dir_list = os.listdir(local_path)
+    files_containing_match_str = [file for file in dir_list if match_str in file]
+    if option == 'list':
+        return files_containing_match_str
+    else:
+        return len(files_containing_match_str)
+
+
+def collect_spider_eggs(match_str, sub_dir_name):
+    local_path = 'output/' + sub_dir_name + '/'
+    file_list = check_number_spider_eggs(match_str, sub_dir_name, option='list')
+    collection = {}
+    for file in file_list:
+        with open(Path(local_path + file), 'r') as open_file:
+            data = json.loads(open_file.read())
+        collection.update(data)
+    return collection
 
 
 def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
@@ -157,9 +186,10 @@ def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
                 os.remove(file)
 
                 if len(en_dict) >= 10:
-                    dump_local_spider_egg('en_reviews_egg', filenumber, 'english_reviews', en_dict)
+
+                    drop_local_spider_egg('en_reviews_egg', 'english_reviews', filenumber, en_dict)
                     en_dict = {}
-                    #check_number_spider_eggs()
+                    check_number_spider_eggs('en_reviews_egg', 'english_reviews')
                     #if spider_eggs >= 100:
                     #    collect_spider_eggs()
                     #    upload_spider_egg_group()

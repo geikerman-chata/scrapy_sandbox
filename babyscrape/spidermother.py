@@ -120,7 +120,7 @@ def silent_remove(filename):
 
 def name_this_file(bucket_name, sub_dir, prefix):
     bucket_list = get_bucket_file_list(bucket_name, sub_dir)
-    prefix_files = [prefix_file for prefix_file in bucket_list if prefix in prefix_file]
+    prefix_files = [str(prefix_file) for prefix_file in bucket_list if prefix in str(prefix_file)]
     if len(prefix_files) == 0:
         suffix = '_0.json'
     else:
@@ -190,13 +190,13 @@ def spider_egg_handler(filenumber, egg_dict, egg_name, egg_save_folder,
     if len(egg_dict) >= dicts_per_egg:
         drop_local_spider_egg(egg_name, egg_save_folder, filenumber, egg_dict)
         egg_dict = {}
-        num_spider_eggs = check_number_spider_eggs(egg_name, egg_save_folder)
+    num_spider_eggs = check_number_spider_eggs(egg_name, egg_save_folder)
 
-        if num_spider_eggs >= eggs_per_collection:
-            spider_eggs = collect_spider_eggs(egg_name, egg_save_folder)
-            collection_name = name_this_file(bucket, google_bucket_save_dir, '{}_bot{}'.format(egg_save_folder,
-                                                                                               filenumber))
-            upload_json_blob(bucket, spider_eggs, google_bucket_save_dir + '/' + collection_name)
+    if num_spider_eggs >= eggs_per_collection:
+        spider_eggs = collect_spider_eggs(egg_name, egg_save_folder)
+        collection_name = name_this_file(bucket, google_bucket_save_dir, '{}_bot{}'.format(egg_save_folder,
+                                                                                           filenumber))
+        upload_json_blob(bucket, spider_eggs, google_bucket_save_dir + '/' + collection_name)
     return egg_dict
 
 
@@ -219,7 +219,7 @@ def main(filenumber, start_spider_index, bucket, proxies_on=False):
             en_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'en_response'
             other_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'other'
             en_dict = spider_egg_handler(filenumber, en_dict, 'en_reviews_egg',
-                                         'english_reviews', 10, 3, en_gcp_bucket_save_dir, bucket)
+                                         'english_reviews', 2, 3, en_gcp_bucket_save_dir, bucket)
             #other_dict = spider_egg_handler(filenumber, other_dict, 'other_reviews_egg',
             #                                'other_reviews', 10, 3, other_gcp_bucket_save_dir, bucket)
         else:

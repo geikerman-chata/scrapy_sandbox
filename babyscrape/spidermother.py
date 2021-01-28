@@ -218,10 +218,10 @@ def main(filenumber, start_spider_index, bucket, proxies_on=False):
             silent_remove(file)
             en_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'en_response'
             other_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'other'
-            #en_dict = spider_egg_handler(filenumber, en_dict, 'en_reviews_egg',
-                  #                       'english_reviews', 10, 3, en_gcp_bucket_save_dir, bucket)
-            other_dict = spider_egg_handler(filenumber, other_dict, 'other_reviews_egg',
-                                            'other_reviews', 10, 3, other_gcp_bucket_save_dir, bucket)
+            en_dict = spider_egg_handler(filenumber, en_dict, 'en_reviews_egg',
+                                         'english_reviews', 10, 3, en_gcp_bucket_save_dir, bucket)
+            #other_dict = spider_egg_handler(filenumber, other_dict, 'other_reviews_egg',
+            #                                'other_reviews', 10, 3, other_gcp_bucket_save_dir, bucket)
         else:
             print('Hotel ID not found in URL!!')
         spiderfeed.next_url()

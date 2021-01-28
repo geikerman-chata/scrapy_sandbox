@@ -117,6 +117,7 @@ def silent_remove(filename):
         if e.errno != errno.ENOENT:
             raise
 
+
 def name_this_file(bucket_name, sub_dir, prefix):
     bucket_list = get_bucket_file_list(bucket_name, sub_dir)
     prefix_files = [prefix_file for prefix_file in bucket_list if prefix in prefix_file]
@@ -179,12 +180,12 @@ def collect_spider_eggs(match_str, sub_dir_name):
         with open(Path(local_path + file), 'r') as open_file:
             data = json.loads(open_file.read())
         collection.update(data)
-        silent_remove(Path(local_path + file))
+        #silent_remove(Path(local_path + file))
     return collection
 
 
 def spider_egg_handler(filenumber, egg_dict, egg_name, egg_save_folder,
-                       dicts_per_egg, eggs_per_collection, google_bucket_save_dir):
+                       dicts_per_egg, eggs_per_collection, google_bucket_save_dir, bucket):
 
     if len(egg_dict) >= dicts_per_egg:
         drop_local_spider_egg(egg_name, egg_save_folder, filenumber, egg_dict)
@@ -199,8 +200,8 @@ def spider_egg_handler(filenumber, egg_dict, egg_name, egg_save_folder,
     return egg_dict
 
 
-def main(filenumber, start_spider_index, proxies_on=False):
-    bucket_sub_dir = 'ta-hotel/compiled'
+def main(filenumber, start_spider_index, bucket, proxies_on=False):
+    bucket_sub_dir = 'ta-hotel/compiled/test'
     spiderfeed = SpiderFeeder(filenumber=filenumber, start_idx=start_spider_index)
     iteration = 0
     en_dict = {}
@@ -217,10 +218,10 @@ def main(filenumber, start_spider_index, proxies_on=False):
             silent_remove(file)
             en_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'en_response'
             other_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'other'
-            en_dict = spider_egg_handler(filenumber, en_dict, 'en_reviews_egg',
-                                         'english_reviews', 1000, 100, en_gcp_bucket_save_dir)
+            #en_dict = spider_egg_handler(filenumber, en_dict, 'en_reviews_egg',
+                  #                       'english_reviews', 10, 3, en_gcp_bucket_save_dir, bucket)
             other_dict = spider_egg_handler(filenumber, other_dict, 'other_reviews_egg',
-                                            'other_reviews', 1000, 100, other_gcp_bucket_save_dir)
+                                            'other_reviews', 10, 3, other_gcp_bucket_save_dir, bucket)
         else:
             print('Hotel ID not found in URL!!')
         spiderfeed.next_url()
@@ -229,7 +230,7 @@ def main(filenumber, start_spider_index, proxies_on=False):
 
 if __name__ == "__main__":
 
-    bucket = 'nlp_resources'
+    bucket_name = 'nlp_resources'
     parser = argparse.ArgumentParser()
     parser.add_argument("--filenumber", "-f", help="File number index of the file in the input directory to run "
                                                    "spidermother on")
@@ -237,9 +238,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.filenumber and args.spider_start_idx:
-        main(int(args.filenumber), int(args.spider_start_idx))
+        main(int(args.filenumber), int(args.spider_start_idx), bucket_name)
     elif not args.spider_start_idx:
-        main(int(args.filenumber), 0)
+        main(int(args.filenumber), 0, bucket_name)
     else:
         raise InvalidArgument('Input a filenumber in the form: -f ## to run spidermother.py')
 

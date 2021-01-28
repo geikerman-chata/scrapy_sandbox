@@ -96,6 +96,8 @@ def main():
         print('There are a total of {} chunks when bunch increment is {}'.format(len(task_chunks), bunch_increment))
         filename = 'en_reviews-{}.json'.format(date)
         task = task_chunks[int(args.chunk_start)]
+        del full_list
+        del task_chunks
         worker_id = args.chunk_start
         file_list = list(bucket.list_blobs(prefix=save_dir))
         previously_seen_files = [name for name in file_list if 'en_reviews-24-01-2021.json' in str(name)

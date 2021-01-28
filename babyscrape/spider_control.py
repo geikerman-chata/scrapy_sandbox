@@ -25,9 +25,9 @@ class InvalidArgument(Exception):
     pass
 
 
-def main(range_idx, start_idx=0, bucket=True):
+def main(range_idx, start_idx=0):
     number_of_processes = len(range(range_idx[0], range_idx[1]))
-    processes = make_processes(range_idx, start_idx, bucket)
+    processes = make_processes(range_idx, start_idx)
     pool = Pool(processes=number_of_processes)
     pool.map(run_process, processes)
 

@@ -7,6 +7,7 @@ import os
 import re
 from pathlib import Path
 
+
 def read_input_folder():
     path = Path(os.getcwd() + '/input')
     folder_contents = os.listdir(path)
@@ -18,10 +19,11 @@ def read_input_folder():
         start_idx = re.search(regex, marker_txt).group(0)
         try:
             with open(Path(path, marker_txt), 'r') as file:
-                markers.append(n,(int(start_idx), file.read()))
+                markers.append((n, int(start_idx), file.read()))
         except:
-            bad_markers.append(n, marker_txt)
+            bad_markers.append((n, marker_txt))
     return markers, bad_markers
+
 
 def remove_bad_markers():
     path = Path(os.getcwd() + '/input')
@@ -35,6 +37,7 @@ def remove_bad_markers():
                     os.remove(Path(path, marker_txt))
         except:
             pass
+
 
 def sum_inputs(marker_list):
     sum_list =[]

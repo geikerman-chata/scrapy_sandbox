@@ -94,7 +94,7 @@ def main():
         bunch_increment = int(args.chunk_size)
         task_chunks = [full_list[x:x + bunch_increment] for x in range(0, len(full_list), bunch_increment)]
         print('There are a total of {} chunks when bunch increment is {}'.format(len(task_chunks), bunch_increment))
-        filename = 'en_reviews-{}.json'.format(date)
+        filename = 'en_reviews-{}{}.json'.format(date, int(args.chunk_start))
         task = task_chunks[int(args.chunk_start)]
         del full_list
         del task_chunks

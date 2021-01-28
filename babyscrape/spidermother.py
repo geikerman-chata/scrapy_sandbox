@@ -180,7 +180,7 @@ def collect_spider_eggs(match_str, sub_dir_name):
         with open(Path(local_path + file), 'r') as open_file:
             data = json.loads(open_file.read())
         collection.update(data)
-        #silent_remove(Path(local_path + file))
+        silent_remove(Path(local_path + file))
     return collection
 
 

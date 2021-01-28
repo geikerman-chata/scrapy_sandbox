@@ -88,20 +88,6 @@ def get_bucket_file_list(bucket_name, sub_dir):
     return list(bucket.list_blobs(prefix=sub_dir))
 
 
-def name_this_file(bucket_name, sub_dir, prefix):
-    bucket_list = get_bucket_file_list(bucket_name, sub_dir)
-    prefix_files = [prefix_file for prefix_file in bucket_list if prefix in prefix_file]
-    if len(prefix_files) == 0:
-        suffix = '_0.json'
-    else:
-        regex = '(?<={}_).*?(?=.json)'.format(prefix)
-        file_numbers = [int(re.search(regex, prefix_file).group(0))
-                        for prefix_file in prefix_files if re.search(regex, prefix_file).group(0)]
-        current_max = max(file_numbers)
-        suffix = '_{}.json'.format(current_max+1)
-    return prefix + suffix
-
-
 def config_settings(spiderfeed, hotel_id, filenumber, proxies_on):
     filename = spiderfeed.zipfile_id + '-' + hotel_id + '.json'
     file = Path('output/' + filename)
@@ -130,6 +116,19 @@ def silent_remove(filename):
     except OSError as e:
         if e.errno != errno.ENOENT:
             raise
+
+def name_this_file(bucket_name, sub_dir, prefix):
+    bucket_list = get_bucket_file_list(bucket_name, sub_dir)
+    prefix_files = [prefix_file for prefix_file in bucket_list if prefix in prefix_file]
+    if len(prefix_files) == 0:
+        suffix = '_0.json'
+    else:
+        regex = '(?<={}_).*?(?=.json)'.format(prefix)
+        file_numbers = [int(re.search(regex, prefix_file).group(0))
+                        for prefix_file in prefix_files if re.search(regex, prefix_file).group(0)]
+        current_max = max(file_numbers)
+        suffix = '_{}.json'.format(current_max+1)
+    return prefix + suffix
 
 
 def get_egg_name(local_path, prefix):
@@ -183,12 +182,6 @@ def collect_spider_eggs(match_str, sub_dir_name):
         silent_remove(Path(local_path + file))
     return collection
 
-#filenumber = 9
-#start_spider_index = 0
-#bucket_save = True
-#bucket = 'nlp_resources'
-#proxies_on =False
-
 
 def spider_egg_handler(filenumber, egg_dict, egg_name, egg_save_folder,
                        dicts_per_egg, eggs_per_collection, google_bucket_save_dir):
@@ -200,12 +193,13 @@ def spider_egg_handler(filenumber, egg_dict, egg_name, egg_save_folder,
 
         if num_spider_eggs >= eggs_per_collection:
             spider_eggs = collect_spider_eggs(egg_name, egg_save_folder)
-            collection_name = name_this_file(bucket, google_bucket_save_dir, '{}_bot'.format(egg_save_folder))
+            collection_name = name_this_file(bucket, google_bucket_save_dir, '{}_bot{}'.format(egg_save_folder,
+                                                                                               filenumber))
             upload_json_blob(bucket, spider_eggs, google_bucket_save_dir + '/' + collection_name)
     return egg_dict
 
 
-def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
+def main(filenumber, start_spider_index, proxies_on=False):
     bucket_sub_dir = 'ta-hotel/compiled'
     spiderfeed = SpiderFeeder(filenumber=filenumber, start_idx=start_spider_index)
     iteration = 0
@@ -216,20 +210,17 @@ def main(filenumber, start_spider_index, bucket_save, bucket, proxies_on=False):
         hotel_id = get_hotel_id(spiderfeed.current_url)
         if hotel_id:
             settings, file = config_settings(spiderfeed, hotel_id, filenumber, proxies_on)
-            if bucket_save:
-                run_spider(BabySpider, settings, spiderfeed.current_url)
-                print('{} Before English length: {}'.format(str(filenumber), str(len(en_dict))))
-                print('{} Before Other length: {}'.format(str(filenumber), str(len(other_dict))))
-                en_dict, other_dict = split_reviews_locally(str(file), en_dict, other_dict)
-                silent_remove(file)
-                en_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'en_response'
-                other_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'other'
-                en_dict = spider_egg_handler(filenumber, en_dict, 'en_reviews_egg',
-                                             'english_reviews', 1000, 100, en_gcp_bucket_save_dir)
-                other_dict = spider_egg_handler(filenumber, other_dict, 'other_reviews_egg',
-                                                'other_reviews', 1000, 100, other_gcp_bucket_save_dir)
-            else:
-                run_spider(BabySpider, settings, spiderfeed.current_url)
+            run_spider(BabySpider, settings, spiderfeed.current_url)
+            print('{} Before English length: {}'.format(str(filenumber), str(len(en_dict))))
+            print('{} Before Other length: {}'.format(str(filenumber), str(len(other_dict))))
+            en_dict, other_dict = split_reviews_locally(str(file), en_dict, other_dict)
+            silent_remove(file)
+            en_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'en_response'
+            other_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'other'
+            en_dict = spider_egg_handler(filenumber, en_dict, 'en_reviews_egg',
+                                         'english_reviews', 1000, 100, en_gcp_bucket_save_dir)
+            other_dict = spider_egg_handler(filenumber, other_dict, 'other_reviews_egg',
+                                            'other_reviews', 1000, 100, other_gcp_bucket_save_dir)
         else:
             print('Hotel ID not found in URL!!')
         spiderfeed.next_url()
@@ -243,18 +234,12 @@ if __name__ == "__main__":
     parser.add_argument("--filenumber", "-f", help="File number index of the file in the input directory to run "
                                                    "spidermother on")
     parser.add_argument("--spider_start_idx", "-s", help="Index in the xml the start feeder will begin ")
-    parser.add_argument("--bucket_save", "-b", help="Save to default bucket path on google cloud: {}".format(bucket))
     args = parser.parse_args()
 
-    if args.bucket_save:
-        bucket_save = True
-    else:
-        bucket_save = False
-
     if args.filenumber and args.spider_start_idx:
-        main(int(args.filenumber), int(args.spider_start_idx), bucket_save, bucket)
+        main(int(args.filenumber), int(args.spider_start_idx))
     elif not args.spider_start_idx:
-        main(int(args.filenumber), 0, bucket_save, bucket)
+        main(int(args.filenumber), 0)
     else:
         raise InvalidArgument('Input a filenumber in the form: -f ## to run spidermother.py')
 

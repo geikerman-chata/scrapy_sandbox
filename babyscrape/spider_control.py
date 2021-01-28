@@ -5,13 +5,12 @@ from pathlib import Path
 import argparse
 
 
-def make_processes(spider_range_idx, start_index, bucket):
+def make_processes(spider_range_idx, start_index):
     if start_index == 0:
         start_string = ''
     else:
         start_string = ' -s ' + str(start_index)
-    if bucket:
-        start_string = start_string + ' -b 0'
+
     processes = ()
     for process_number in range(spider_range_idx[0], spider_range_idx[1]):
         processes = processes + ('spidermother.py -f {}{}'.format(process_number, start_string),)
@@ -41,13 +40,7 @@ if __name__ == "__main__":
     parser.add_argument("--start_index", "-i", help="Which index in the xml to start on")
     parser.add_argument("--start", "-s", help="Start target process file number")
     parser.add_argument("--finish", "-f", help="End target process file number")
-    parser.add_argument("--nobucket", "-n", help='Save output on local machine')
     args = parser.parse_args()
-
-    if args.nobucket:
-        bucket = False
-    else:
-        bucket = True
 
     if args.start and args.finish:
         range_idx = (int(args.start), int(args.finish))
@@ -62,9 +55,9 @@ if __name__ == "__main__":
         if range_idx[1] > max_spiders - 1:
             range_idx = (range_idx[0], max_spiders - 1)
         if args.start_index:
-            main(range_idx=range_idx, start_idx=args.start_index, bucket=bucket)
+            main(range_idx=range_idx, start_idx=args.start_index)
         else:
-            main(range_idx=range_idx, bucket=bucket)
+            main(range_idx=range_idx)
     else:
         raise InvalidArgument('spider_control.py takes -s and -f as arguments, must be integers < '.format(max_spiders - 1))
 

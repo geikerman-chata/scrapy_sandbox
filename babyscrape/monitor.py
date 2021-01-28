@@ -16,11 +16,11 @@ def read_input_folder():
     bad_markers = []
     for marker_txt in marker_list:
         start_idx = re.search(regex, marker_txt).group(0)
-        with open(Path(path, marker_txt), 'r') as file:
-            if start_idx and file.read()!= '':
-                markers.append((int(start_idx), int(file.read())))
-            else:
-                bad_markers.append(marker_txt)
+        try:
+            with open(Path(path, marker_txt), 'r') as file:
+                markers.append((int(start_idx), file.read()))
+        except:
+            bad_markers.append(marker_txt)
     return markers, bad_markers
 
 def sum_inputs(marker_list):

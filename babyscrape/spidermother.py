@@ -201,7 +201,7 @@ def spider_egg_handler(filenumber, egg_dict, egg_name, egg_save_folder,
 
 
 def main(filenumber, start_spider_index, bucket, proxies_on=False):
-    bucket_sub_dir = 'ta-hotel/compiled/test'
+    bucket_sub_dir = 'ta-hotel/compiled'
     spiderfeed = SpiderFeeder(filenumber=filenumber, start_idx=start_spider_index)
     iteration = 0
     en_dict = {}
@@ -219,9 +219,9 @@ def main(filenumber, start_spider_index, bucket, proxies_on=False):
             en_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'en_response'
             other_gcp_bucket_save_dir = bucket_sub_dir + '/' + 'other'
             en_dict = spider_egg_handler(filenumber, en_dict, 'en_reviews_egg',
-                                         'english_reviews', 2, 3, en_gcp_bucket_save_dir, bucket)
-            #other_dict = spider_egg_handler(filenumber, other_dict, 'other_reviews_egg',
-            #                                'other_reviews', 10, 3, other_gcp_bucket_save_dir, bucket)
+                                         'english_reviews', 1000, 100, en_gcp_bucket_save_dir, bucket)
+            other_dict = spider_egg_handler(filenumber, other_dict, 'other_reviews_egg',
+                                            'other_reviews', 1000, 100, other_gcp_bucket_save_dir, bucket)
         else:
             print('Hotel ID not found in URL!!')
         spiderfeed.next_url()
@@ -229,7 +229,6 @@ def main(filenumber, start_spider_index, bucket, proxies_on=False):
 
 
 if __name__ == "__main__":
-
     bucket_name = 'nlp_resources'
     parser = argparse.ArgumentParser()
     parser.add_argument("--filenumber", "-f", help="File number index of the file in the input directory to run "

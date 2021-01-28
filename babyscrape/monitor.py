@@ -14,14 +14,27 @@ def read_input_folder():
     regex = '(?<=_marker_).*?(?=.txt)'
     markers = []
     bad_markers = []
-    for marker_txt in marker_list:
+    for n, marker_txt in enumerate(marker_list):
         start_idx = re.search(regex, marker_txt).group(0)
         try:
             with open(Path(path, marker_txt), 'r') as file:
-                markers.append((int(start_idx), file.read()))
+                markers.append(n,(int(start_idx), file.read()))
         except:
-            bad_markers.append(marker_txt)
+            bad_markers.append(n, marker_txt)
     return markers, bad_markers
+
+def remove_bad_markers():
+    path = Path(os.getcwd() + '/input')
+    folder_contents = os.listdir(path)
+    marker_list = [marker for marker in folder_contents if '_marker_' in marker]
+    for n, marker_txt in enumerate(marker_list):
+        try:
+            with open(Path(path, marker_txt), 'r') as file:
+                if file.read() == '':
+                    print('Deleting {}'.format(marker_txt))
+                    os.remove(Path(path, marker_txt))
+        except:
+            pass
 
 def sum_inputs(marker_list):
     sum_list =[]

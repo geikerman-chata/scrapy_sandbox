@@ -186,7 +186,8 @@ def collect_spider_eggs(match_str, sub_dir_name):
 
 def spider_egg_handler(filenumber, egg_dict, egg_name, egg_save_folder,
                        dicts_per_egg, eggs_per_collection, google_bucket_save_dir, bucket):
-
+    now = datetime.now()
+    date = now.strftime("%d-%m-%Y")
     if len(egg_dict) >= dicts_per_egg:
         drop_local_spider_egg(egg_name, egg_save_folder, filenumber, egg_dict)
         egg_dict = {}
@@ -194,8 +195,7 @@ def spider_egg_handler(filenumber, egg_dict, egg_name, egg_save_folder,
 
     if num_spider_eggs >= eggs_per_collection:
         spider_eggs = collect_spider_eggs(egg_name, egg_save_folder)
-        collection_name = name_this_file(bucket, google_bucket_save_dir, '{}_bot{}'.format(egg_save_folder,
-                                                                                           filenumber))
+        collection_name = name_this_file(bucket, google_bucket_save_dir, '{}-{}'.format(egg_save_folder, date))
         upload_json_blob(bucket, spider_eggs, google_bucket_save_dir + '/' + collection_name)
     return egg_dict
 

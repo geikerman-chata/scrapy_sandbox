@@ -8,7 +8,7 @@ WARNING: The code is usable, albeit a bit wobbly. There are many: nice-to-haves 
 
 Clone this repo to a linux machine (most testing done on Debian 10) ensure the local repo holds the scrapy.cfg (scrapy config file).
 ```bash 
-git clone https://github.com/geikerman-chata/scrapy_sandbox
+git clone https://github.com/geikerman-chata/ta_crawler
 ```
 
 The following bash commands will install wget, chrome, chromdriver and other programs to support chromedriver running smoothly (jdk & jre):

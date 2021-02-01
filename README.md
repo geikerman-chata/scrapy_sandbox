@@ -30,7 +30,7 @@ $ pip install requirements.txt -r
 
 ## Quick Start
 
-To download the trip advisor sitemap xmls and initialized the input folder run:
+To download the trip advisor sitemap xmls and initialized the input folder run inside the babyscrape directory:
 ```bash
 $ python3 download_hotel_xml.py
 ```

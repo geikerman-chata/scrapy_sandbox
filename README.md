@@ -55,10 +55,6 @@ There are 35 Trip Advisor xml zip files each with ~50,000 hotel urls.  The numbe
 -s [0 - 49999] Which index in the xml file do you want to spider to start on.
 
 
-WARNING:
- If -b is left out as a parameter, the output is saved locally in "cwd"/output. 
-Hope you have plenty of hard-drive space in your local repo. 
-
 To run multiple spiders in parallel:
 ```bash
 $ python3 spider_control.py -s 0 -f 8 -i 1000

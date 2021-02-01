@@ -1,4 +1,4 @@
-# scrapy_sandbox
+# ta_crawler
 
 Collection of python scripts to scrape TripAdvisor by leveraging their robot.txt sitemap. 
 
@@ -36,16 +36,16 @@ $ python3 download_hotel_xml.py
 ```
 To run one spider for example:
 ```bash
-$ python3 spidermother.py -f 0 -s 0 -b 0
+$ python3 spidermother.py -f 0 -s 0 
 ```
 
-NOTE: The spider's print a lot of output for debugging purposes. It's recommended that you wrap the commands to run a spider or series of spiders with nohup & which will force it to run in background (you will be able to close the vm ssh, and it will still be running) and store the command line output to a file, like this:
+NOTE: The spiders print tons of output for debugging purposes. It's recommended that you wrap the commands to run a spider or series of spiders with nohup & which will force it to run in background (you will be able to close the vm ssh, and it will still be running) and store the command line output to a file, like this:
 
 ```bash
-$ nohup python3 spidermother.py -f 0 -s 0 -b 0 &> cmdline.out &
+$ nohup python3 spidermother.py -f 0 -s 0 &> cmdline.out &
 ```
 
-This command run 1 spider using xml file 0 (of 35) as input. The spider will keep running until all urls in the specified xml have been visited. 
+This command will run 1 spider using xml file 0 (of 35) as input. The spider will keep running until all urls in the specified xml have been visited. 
 
 The inputs here are a bit cryptic: 
 There are 35 Trip Advisor xml zip files each with ~50,000 hotel urls.  The numbers in square brackets is the range of acceptable values following each argument:
@@ -54,7 +54,6 @@ There are 35 Trip Advisor xml zip files each with ~50,000 hotel urls.  The numbe
 
 -s [0 - 49999] Which index in the xml file do you want to spider to start on.
 
--b [any int] Do you want to save to google buckets. 
 
 WARNING:
  If -b is left out as a parameter, the output is saved locally in "cwd"/output. 
